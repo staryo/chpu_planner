@@ -159,15 +159,17 @@ def main():
                 if task.operation in setups:
                     if setups[task.operation] != equipment:
                         continue
-                if equipment.identity not in task.operation.equipment_class.equipment:
+                if equipment.identity not in \
+                        task.operation.equipment_class.equipment:
                     continue
                 if setups.get(task.operation) != equipment:
-                    if equipment.machine_labor + task.setup_labor > config['rules']['machine_labor_limit']:
-                        continue
-                    else:
+                    if equipment.machine_labor + task.setup_labor <= \
+                            config['rules']['machine_labor_limit']:
                         quantity = min(
                             quantity,
-                            (config['rules']['machine_labor_limit'] - (equipment.machine_labor + task.setup_labor)) // task.operation.machine_labor
+                            (config['rules']['machine_labor_limit'] - (
+                                    equipment.machine_labor + task.setup_labor
+                            )) // task.operation.machine_labor
                         )
                     # if task.setup_labor > task.operation.machine_labor and quantity / task.quantity < 0.1:
                     #     continue
@@ -264,8 +266,8 @@ def main():
     report = [{
         'EQUIPMENT_ID': equipment.identity,
         'EQUIPMENT_CLASS_ID': equipment.equipment_class.identity,
-        'SETUP_OPERATION': final_setup[equipment].identity
-    } for equipment in final_setup]
+        'SETUP_OPERATION': operation.identity
+    } for equipment, operation in final_setup.items()]
     print(report[0])
 
     dict_to_excel(report, config['output']['final_setups'])
