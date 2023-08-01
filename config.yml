@@ -1,12 +1,12 @@
 input:
-  equipment: equipment.xlsx
-  tasks: tasks.xlsx
-  setups: setups.xlsx
+  equipment: example/equipment.xlsx
+  tasks: example/tasks.xlsx
+  setups: example/setups.xlsx
 
 output:
-  daily_tasks: result_1.xlsx
-  final_setups: setups_1.xlsx
-  tasks_left: tasks_1.xlsx
+  daily_tasks: example/result_1.xlsx
+  final_setups: example/setups_1.xlsx
+  tasks_left: example/tasks_1.xlsx
 
 rules:
   human_labor_limit: 12

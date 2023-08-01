@@ -36,23 +36,23 @@ def main():
                 identity=row['GROUP']
             )
         if row['EQUIPMENT_ID'] not in all_equipment_classes:
-            all_equipment_classes[row['EQUIPMENT_ID']] = EquipmentClass(
-                identity=row['EQUIPMENT_ID'],
+            all_equipment_classes[str(row['EQUIPMENT_ID'])] = EquipmentClass(
+                identity=str(row['EQUIPMENT_ID']),
                 name=row['NAME']
             )
         all_equipment_classes[
-            row['EQUIPMENT_ID']
+            str(row['EQUIPMENT_ID'])
         ].equipment[row['ID']] = Equipment(
             identity=row['ID'],
             model=row['MODEL'],
             equipment_class=all_equipment_classes[
-                row['EQUIPMENT_ID']
+                str(row['EQUIPMENT_ID'])
             ]
         )
         all_equipment_groups[
             row['GROUP']
         ].equipment[row['ID']] = all_equipment_classes[
-            row['EQUIPMENT_ID']
+            str(row['EQUIPMENT_ID'])
         ].equipment[row['ID']]
 
     all_tasks = []
@@ -108,7 +108,10 @@ def main():
         for equipment_group in all_equipment_groups.values():
             if equipment_group.human_labor > config['rules']['human_labor_limit']:
                 continue
-            quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // task.operation.human_labor
+            try:
+                quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // task.operation.human_labor
+            except ZeroDivisionError:
+                quantity = task.quantity
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
@@ -121,10 +124,13 @@ def main():
                 #         continue
                 if equipment.identity not in task.operation.equipment_class.equipment:
                     continue
-                quantity = min(
-                    quantity,
-                    (config['rules']['machine_labor_limit'] - equipment.machine_labor) // task.operation.machine_labor
-                )
+                try:
+                    quantity = min(
+                        quantity,
+                        (config['rules']['machine_labor_limit'] - equipment.machine_labor) // task.operation.machine_labor
+                    )
+                except ZeroDivisionError:
+                    quantity = task.quantity
                 if quantity <= 0:
                     continue
                 new_task = Task(
@@ -150,7 +156,10 @@ def main():
         for equipment_group in all_equipment_groups.values():
             if equipment_group.human_labor > config['rules']['human_labor_limit']:
                 continue
-            quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // task.operation.human_labor
+            try:
+                quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // task.operation.human_labor
+            except ZeroDivisionError:
+                quantity = task.quantity
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
@@ -165,19 +174,25 @@ def main():
                 if setups.get(task.operation) != equipment:
                     if equipment.machine_labor + task.setup_labor <= \
                             config['rules']['machine_labor_limit']:
-                        quantity = min(
-                            quantity,
-                            (config['rules']['machine_labor_limit'] - (
-                                    equipment.machine_labor + task.setup_labor
-                            )) // task.operation.machine_labor
-                        )
+                        try:
+                            quantity = min(
+                                quantity,
+                                (config['rules']['machine_labor_limit'] - (
+                                        equipment.machine_labor + task.setup_labor
+                                )) // task.operation.machine_labor
+                            )
+                        except ZeroDivisionError:
+                            pass
                     # if task.setup_labor > task.operation.machine_labor and quantity / task.quantity < 0.1:
                     #     continue
                 else:
-                    quantity = min(
-                        quantity,
-                        (config['rules']['machine_labor_limit'] - equipment.machine_labor) // task.operation.machine_labor
-                    )
+                    try:
+                        quantity = min(
+                            quantity,
+                            (config['rules']['machine_labor_limit'] - equipment.machine_labor) // task.operation.machine_labor
+                        )
+                    except ZeroDivisionError:
+                        pass
                 if quantity <= 0:
                     continue
                 new_task = Task(
