@@ -176,8 +176,6 @@ def main():
                 if equipment.identity not in \
                         task.operation.equipment_class.equipment:
                     continue
-                if equipment_group.identity == 1:
-                    a = 1
                 if setups.get(task.operation) != equipment:
                     if equipment.machine_labor + task.setup_labor <= \
                             config['rules']['machine_labor_limit']:
