@@ -35,24 +35,24 @@ def main():
             all_equipment_groups[row['GROUP']] = EquipmentGroup(
                 identity=row['GROUP']
             )
-        if row['EQUIPMENT_ID'] not in all_equipment_classes:
-            all_equipment_classes[row['EQUIPMENT_ID']] = EquipmentClass(
-                identity=row['EQUIPMENT_ID'],
+        if str(row['EQUIPMENT_ID']) not in all_equipment_classes:
+            all_equipment_classes[str(row['EQUIPMENT_ID'])] = EquipmentClass(
+                identity=str(row['EQUIPMENT_ID']),
                 name=row['NAME']
             )
         all_equipment_classes[
-            row['EQUIPMENT_ID']
+            str(row['EQUIPMENT_ID'])
         ].equipment[row['ID']] = Equipment(
             identity=row['ID'],
             model=row['MODEL'],
             equipment_class=all_equipment_classes[
-                row['EQUIPMENT_ID']
+                str(row['EQUIPMENT_ID'])
             ]
         )
         all_equipment_groups[
             row['GROUP']
         ].equipment[row['ID']] = all_equipment_classes[
-            row['EQUIPMENT_ID']
+            str(row['EQUIPMENT_ID'])
         ].equipment[row['ID']]
 
     all_tasks = []
@@ -108,7 +108,10 @@ def main():
         for equipment_group in all_equipment_groups.values():
             if equipment_group.human_labor > config['rules']['human_labor_limit']:
                 continue
-            quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // task.operation.human_labor
+            quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // max(
+                task.operation.human_labor,
+                0.0001
+            )
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
@@ -123,7 +126,10 @@ def main():
                     continue
                 quantity = min(
                     quantity,
-                    (config['rules']['machine_labor_limit'] - equipment.machine_labor) // task.operation.machine_labor
+                    (config['rules']['machine_labor_limit'] - equipment.machine_labor) // max(
+                        task.operation.machine_labor,
+                        0.0001
+                    )
                 )
                 if quantity <= 0:
                     continue
@@ -150,10 +156,18 @@ def main():
         for equipment_group in all_equipment_groups.values():
             if equipment_group.human_labor > config['rules']['human_labor_limit']:
                 continue
-            quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // task.operation.human_labor
+            quantity = (config['rules']['human_labor_limit'] - equipment_group.human_labor) // max(
+                task.operation.human_labor,
+                0.0001
+            )
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
+                quantity = (config['rules'][
+                                'human_labor_limit'] - equipment_group.human_labor) // max(
+                    task.operation.human_labor,
+                    0.0001
+                )
                 if equipment.machine_labor > config['rules']['machine_labor_limit']:
                     continue
                 if task.operation in setups:
@@ -169,14 +183,19 @@ def main():
                             quantity,
                             (config['rules']['machine_labor_limit'] - (
                                     equipment.machine_labor + task.setup_labor
-                            )) // task.operation.machine_labor
+                            )) // max(task.operation.machine_labor, 0.001)
                         )
+                    else:
+                        quantity = 0
                     # if task.setup_labor > task.operation.machine_labor and quantity / task.quantity < 0.1:
                     #     continue
                 else:
                     quantity = min(
                         quantity,
-                        (config['rules']['machine_labor_limit'] - equipment.machine_labor) // task.operation.machine_labor
+                        (config['rules']['machine_labor_limit'] - equipment.machine_labor) // max(
+                            task.operation.machine_labor,
+                            0.0001
+                        )
                     )
                 if quantity <= 0:
                     continue
