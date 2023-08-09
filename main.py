@@ -28,9 +28,9 @@ def main():
 
     config = read_config(args.config)
 
-    all_equipment_classes, all_equipment_groups = read_equipment(config)
-
     for day in tqdm(range(config['rules']['days_number'])):
+        all_equipment_classes, all_equipment_groups = read_equipment(config)
+
         all_tasks, all_operations = read_tasks(
             config['input']['tasks'].format(day),
             all_equipment_classes
@@ -57,13 +57,13 @@ def main():
         )
 
         dict_to_excel(daily_task_report(all_equipment_groups),
-                      config['output']['daily_tasks'].format(day+1))
+                      config['output']['daily_tasks'].format(day + 1))
 
         dict_to_excel(final_setups_report(final_setup),
-                      config['input']['setups'].format(day+1))
+                      config['input']['setups'].format(day + 1))
 
         dict_to_excel(tasks_left_report(all_tasks),
-                      config['input']['tasks'].format(day+1))
+                      config['input']['tasks'].format(day + 1))
 
 
 if __name__ == '__main__':

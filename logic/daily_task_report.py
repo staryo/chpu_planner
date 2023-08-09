@@ -1,4 +1,3 @@
-
 def daily_task_report(all_equipment_groups):
     report = []
     for equipment_group in all_equipment_groups.values():
@@ -61,7 +60,8 @@ def daily_task_report(all_equipment_groups):
                     'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}]",
                     'КОЛИЧЕСТВО': task_sum[each]['QUANTITY'],
                     'ВРЕМЯ НАЛАДКИ': task_sum[each]['SETUP_TIME'],
-                    'СТАНКОЧАСЫ': task_sum[each]['QUANTITY'] * each.machine_labor,
+                    'СТАНКОЧАСЫ': task_sum[each][
+                                      'QUANTITY'] * each.machine_labor,
                     'НОРМОЧАСЫ': task_sum[each]['QUANTITY'] * each.human_labor
                 })
     return report
