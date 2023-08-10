@@ -7,8 +7,12 @@ from utils.excel import excel_to_dict
 def read_equipment(config):
     all_equipment_groups = {}
     all_equipment_classes = {}
+    dept_id = config['rules']['dept_id']
 
     for row in excel_to_dict(config['input']['equipment']):
+        if dept_id != (row.get('DEPT_ID') or dept_id):
+            continue
+
         if not (row['GROUP']):
             continue
         if row['GROUP'] not in all_equipment_groups:
