@@ -21,19 +21,24 @@ def main():
     )
     parser.add_argument('-c', '--config', required=False,
                         default=join(getcwd(), 'config.yml'))
+    parser.add_argument('-d', '--days', required=False,
+                        default=None)
 
     args = parser.parse_args()
 
     # basicConfig(level=args.debug and DEBUG or INFO)
 
     config = read_config(args.config)
+    if args.days:
+        config['rules']['days_number'] = int(args.days)
 
     for day in tqdm(range(config['rules']['days_number'])):
         all_equipment_classes, all_equipment_groups = read_equipment(config)
 
         all_tasks, all_operations = read_tasks(
             config['input']['tasks'].format(day),
-            all_equipment_classes
+            all_equipment_classes,
+            config['rules']['dept_id']
         )
 
         final_setup, all_equipment_setups = read_setups(

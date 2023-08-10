@@ -3,10 +3,12 @@ from model.task import Task
 from utils.excel import excel_to_dict
 
 
-def read_tasks(tasks_path, all_equipment_classes):
+def read_tasks(tasks_path, all_equipment_classes, dept_id):
     all_tasks = []
     all_operations = {}
     for row in excel_to_dict(tasks_path):
+        if dept_id != (row.get('DEPT_ID') or dept_id):
+            continue
         if row['OPERATION_ID'] not in all_operations:
             all_operations[row['OPERATION_ID']] = Operation(
                 identity=row['OPERATION_ID'],
