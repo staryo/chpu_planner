@@ -45,23 +45,54 @@ def daily_task_report(all_equipment_groups):
                         setup_time = 0
                     else:
                         setup_time = task.setup_labor
-                    task_sum[task.operation] = {
-                        'QUANTITY': task.quantity,
-                        'SETUP_TIME': setup_time
-                    }
+                    if '_NOK' in task.order:
+                        task_sum[task.operation] = {
+                            'QUANTITY': 0,
+                            'QUANTITY_NOK': task.quantity,
+                            'SETUP_TIME': setup_time
+                        }
+                    else:
+                        task_sum[task.operation] = {
+                            'QUANTITY': task.quantity,
+                            'QUANTITY_NOK': 0,
+                            'SETUP_TIME': setup_time
+                        }
                 else:
-                    task_sum[task.operation]['QUANTITY'] += task.quantity
+                    if '_NOK' in task.order:
+                        task_sum[task.operation]['QUANTITY_NOK'] += task.quantity
+                    else:
+                        task_sum[task.operation]['QUANTITY'] += task.quantity
             for each in task_sum:
-                report.append({
-                    'ГРУППА': '',
-                    'ИНВ. НОМЕР': equipment.identity,
-                    'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
-                    'МАРШРУТ': f"{each.identity.split('_')[1][1]}",
-                    'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}]",
-                    'КОЛИЧЕСТВО': task_sum[each]['QUANTITY'],
-                    'ВРЕМЯ НАЛАДКИ': task_sum[each]['SETUP_TIME'],
-                    'СТАНКОЧАСЫ': task_sum[each][
-                                      'QUANTITY'] * each.machine_labor,
-                    'НОРМОЧАСЫ': task_sum[each]['QUANTITY'] * each.human_labor
-                })
+                if task_sum[each]['QUANTITY'] > 0:
+                    report.append({
+                        'ГРУППА': '',
+                        'ИНВ. НОМЕР': equipment.identity,
+                        'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
+                        'МАРШРУТ': f"{each.identity.split('_')[1][1]}",
+                        'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}]",
+                        'КОЛИЧЕСТВО': task_sum[each]['QUANTITY'],
+                        'ВРЕМЯ НАЛАДКИ': task_sum[each]['SETUP_TIME'],
+                        'СТАНКОЧАСЫ': task_sum[each][
+                                          'QUANTITY'] * each.machine_labor,
+                        'НОРМОЧАСЫ': task_sum[each]['QUANTITY'] * each.human_labor
+                    })
+                if task_sum[each]['QUANTITY_NOK'] > 0:
+                    if task_sum[each]['QUANTITY'] > 0:
+                        setup_time = 0
+                    else:
+                        setup_time = task_sum[each]['QUANTITY_NOK']
+                    report.append({
+                        'ГРУППА': '',
+                        'ИНВ. НОМЕР': equipment.identity,
+                        'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
+                        'МАРШРУТ': f"{each.identity.split('_')[1][1]}",
+                        'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}] !NOK!",
+                        'КОЛИЧЕСТВО': task_sum[each]['QUANTITY_NOK'],
+                        'ВРЕМЯ НАЛАДКИ': setup_time,
+                        'СТАНКОЧАСЫ': task_sum[each][
+                                          'QUANTITY_NOK'] * each.machine_labor,
+                        'НОРМОЧАСЫ': task_sum[each][
+                                         'QUANTITY_NOK'] * each.human_labor
+                    })
+
     return report

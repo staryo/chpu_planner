@@ -1,8 +1,9 @@
 class Task:
-    def __init__(self, operation, quantity, date):
+    def __init__(self, operation, quantity, date, order):
         self.operation = operation
         self.quantity = quantity
         self.date = date
+        self.order = order
 
     @property
     def human_labor(self):

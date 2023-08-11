@@ -23,7 +23,8 @@ def read_tasks(tasks_path, all_equipment_classes, dept_id):
         all_tasks.append(Task(
             operation=all_operations[row['OPERATION_ID']],
             quantity=row['QUANTITY'],
-            date=row['DATE']
+            date=row['DATE'],
+            order=row['ORDER']
         ))
 
     return all_tasks, all_operations

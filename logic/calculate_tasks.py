@@ -46,7 +46,8 @@ def calculate_tasks(
                 new_task = Task(
                     task.operation,
                     min(quantity + 1, task.quantity),
-                    task.date
+                    task.date,
+                    task.order
                 )
                 task.quantity = task.quantity - new_task.quantity
                 if task.quantity > 0:
@@ -115,7 +116,8 @@ def calculate_tasks(
                 new_task = Task(
                     task.operation,
                     min(quantity + 1, task.quantity),
-                    task.date
+                    task.date,
+                    task.order
                 )
                 task.quantity = task.quantity - new_task.quantity
                 if task.quantity > 0:
