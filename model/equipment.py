@@ -1,6 +1,7 @@
 class Equipment:
-    def __init__(self, identity, model, equipment_class):
+    def __init__(self, identity, humanized_identity, model, equipment_class):
         self.identity = identity
+        self.humanized_identity = humanized_identity
         self.model = model
         self.equipment_class = equipment_class
         self.initial_setup = None

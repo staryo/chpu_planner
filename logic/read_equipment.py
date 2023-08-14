@@ -24,19 +24,21 @@ def read_equipment(config):
                 identity=str(row['EQUIPMENT_ID']),
                 name=row['NAME']
             )
+        machine_id = f"{row['ID']}"
+        if row['Порядковый номер']:
+            machine_id += f" / {row['Порядковый номер']}"
         all_equipment_classes[
             str(row['EQUIPMENT_ID'])
         ].equipment[row['ID']] = Equipment(
             identity=row['ID'],
+            humanized_identity=machine_id,
             model=row['MODEL'],
             equipment_class=all_equipment_classes[
                 str(row['EQUIPMENT_ID'])
             ]
         )
-        all_equipment_groups[
-            row['GROUP']
-        ].equipment[row['ID']] = all_equipment_classes[
-            str(row['EQUIPMENT_ID'])
-        ].equipment[row['ID']]
+        all_equipment_groups[row['GROUP']].equipment[row['ID']] = \
+            all_equipment_classes[str(row['EQUIPMENT_ID'])].equipment[
+                row['ID']]
 
     return all_equipment_classes, all_equipment_groups

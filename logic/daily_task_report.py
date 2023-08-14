@@ -28,7 +28,7 @@ def daily_task_report(all_equipment_groups):
                 route_id = '-'
             report.append({
                 'ГРУППА': '',
-                'ИНВ. НОМЕР': equipment.identity,
+                'ИНВ. НОМЕР': equipment.humanized_identity,
                 'МОДЕЛЬ ОБОРУДОВАНИЯ': f"{equipment.equipment_class.name} "
                                        f"[{equipment.equipment_class.identity}]",
                 'МАРШРУТ': route_id,
@@ -66,7 +66,7 @@ def daily_task_report(all_equipment_groups):
                 if task_sum[each]['QUANTITY'] > 0:
                     report.append({
                         'ГРУППА': '',
-                        'ИНВ. НОМЕР': equipment.identity,
+                        'ИНВ. НОМЕР': equipment.humanized_identity,
                         'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
                         'МАРШРУТ': f"{each.identity.split('_')[1][1]}",
                         'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}]",
@@ -83,7 +83,7 @@ def daily_task_report(all_equipment_groups):
                         setup_time = task_sum[each]['QUANTITY_NOK']
                     report.append({
                         'ГРУППА': '',
-                        'ИНВ. НОМЕР': equipment.identity,
+                        'ИНВ. НОМЕР': equipment.humanized_identity,
                         'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
                         'МАРШРУТ': f"{each.identity.split('_')[1][1]}",
                         'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}] !NOK!",

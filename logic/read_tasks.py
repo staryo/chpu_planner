@@ -6,6 +6,10 @@ from utils.excel import excel_to_dict
 def read_tasks(tasks_path, all_equipment_classes, dept_id):
     all_tasks = []
     all_operations = {}
+    # tasks = sorted(
+    #     excel_to_dict(tasks_path),
+    #     key=lambda k: (k['ORDER'][:9], 1 if '_NOK' in k['ORDER'] else 0)
+    # )
     for row in excel_to_dict(tasks_path):
         if dept_id != (row.get('DEPT_ID') or dept_id):
             continue
