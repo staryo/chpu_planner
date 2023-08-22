@@ -12,10 +12,11 @@ from logic.read_equipment import read_equipment
 from logic.read_setups import read_setups
 from logic.read_tasks import read_tasks
 from logic.tasks_left_report import tasks_left_report
+from model.archive import Archive
 from utils.excel import dict_to_excel
 
 
-def main():
+def chpu_planner():
     parser = ArgumentParser(
         description='Инструмент планирования станков ЧПУ.'
     )
@@ -31,6 +32,8 @@ def main():
     config = read_config(args.config)
     if args.days:
         config['rules']['days_number'] = int(args.days)
+
+    archive = Archive()
 
     for day in tqdm(range(config['rules']['days_number'])):
         all_equipment_classes, all_equipment_groups = read_equipment(config)
@@ -70,6 +73,13 @@ def main():
         dict_to_excel(tasks_left_report(all_tasks),
                       config['input']['tasks'].format(day + 1))
 
+        for equipment_group in all_equipment_groups.values():
+            for equipment in equipment_group.equipment.values():
+                archive.add_day(equipment, day)
+
+    dict_to_excel(archive.several_days_report(),
+                  config['output']['daily_tasks'].format('all'))
+
 
 if __name__ == '__main__':
-    main()
+    chpu_planner()

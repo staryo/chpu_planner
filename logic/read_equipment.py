@@ -35,7 +35,8 @@ def read_equipment(config):
             model=row['MODEL'],
             equipment_class=all_equipment_classes[
                 str(row['EQUIPMENT_ID'])
-            ]
+            ],
+            equipment_group=row['GROUP']
         )
         all_equipment_groups[row['GROUP']].equipment[row['ID']] = \
             all_equipment_classes[str(row['EQUIPMENT_ID'])].equipment[
