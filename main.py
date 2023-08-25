@@ -77,8 +77,12 @@ def chpu_planner():
             for equipment in equipment_group.equipment.values():
                 archive.add_day(equipment, day)
 
-    dict_to_excel(archive.several_days_report(config['rules']['step']),
-                  config['output']['daily_tasks'].format('all'))
+    dict_to_excel(
+        archive.several_days_report(
+            config['rules']['step'],
+            config['rules']['first_shift_start']),
+        config['output']['daily_tasks'].format('all')
+    )
 
 
 if __name__ == '__main__':

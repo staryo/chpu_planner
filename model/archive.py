@@ -10,7 +10,7 @@ class Archive:
         self.schedule[equipment.identity][
             day] = equipment
 
-    def several_days_report(self, step):
+    def several_days_report(self, step, shift_hours):
         def add_total_data(values, name):
             new_row = {
                 'ГРУППА': '',
@@ -18,13 +18,17 @@ class Archive:
                 'МОДЕЛЬ ОБОРУДОВАНИЯ': name,
             }
             for total_day, total_value in values.items():
-                new_row[get_humanized_data(total_day, step)] = total_value
+                new_row[get_humanized_data(total_day, step,
+                                           shift_hours)] = total_value
             return new_row
 
-        def get_humanized_data(period_number, step_value):
+        def get_humanized_data(period_number, step_value, shift_start):
+            now_hour = (datetime.now().hour - shift_start) % 24
+            cur_hour = (now_hour // step_value) * step_value + shift_start
+
             return (
                     datetime.now().replace(
-                        hour=8,
+                        hour=cur_hour % 24,
                         minute=0,
                         second=0,
                         microsecond=0
@@ -63,15 +67,33 @@ class Archive:
                     try:
                         task = tasks.schedule[task_number]
                     except IndexError:
-                        row[get_humanized_data(day, step)] = ''
+                        row[get_humanized_data(day, step, shift_hours)] = ''
                         continue
                     check = True
-                    operation_id = f"{task.operation.entity} [{task.operation.identity.split('_')[1][1]} | {task.operation.nop}]"
-                    if 'NOK' in task.order:
-                        operation_id = f"!NOK! {operation_id}"
+                    if ',' in task.operation.entity:
+                        operation_id = (
+                            f"{task.operation.entity.split('(')[0]}"
+                            f"{')'.join(task.operation.entity.split(')')[1:])}"
+                            f"[{task.operation.identity.split('_')[1][1]}-"
+                            f"{task.operation.entity.split(',')[1][0]}-"
+                            f"{task.operation.nop.split('_')[1]}]")
                     else:
-                        operation_id = f"!OK! {operation_id}"
-                    row[get_humanized_data(day, step)] = f"{operation_id}: {task.quantity} шт"
+                        operation_id = (f"{task.operation.entity}"
+                                        f"[{task.operation.identity.split('_')[1][1]}-"
+                                        f"?-"
+                                        f"{task.operation.nop.split('_')[1]}]")
+
+                    if 'NOK_D' in task.order:
+                        ok_nok = 'NOK_D'
+                    elif 'NOK' in task.order:
+                        ok_nok = 'NOK'
+                    elif 'OK_D' in task.order:
+                        ok_nok = 'OK_D'
+                    elif 'OK' in task.order:
+                        ok_nok = 'OK'
+                    row[
+                        get_humanized_data(day, step, shift_hours)
+                    ] = f"{operation_id} {int(task.quantity)} {ok_nok}"
                 report.append(row)
                 task_number += 1
         report.append(add_total_data(setup_labor, 'НАЛАДКИ'))
