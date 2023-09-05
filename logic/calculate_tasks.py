@@ -1,3 +1,6 @@
+import sys
+
+from logic.tasks_limit import get_task_limit, get_task_limit_cache
 from model.task import Task
 
 
@@ -10,7 +13,10 @@ def calculate_tasks(
         machine_labor_limit
 ):
     setups = {}
+    cache = get_task_limit_cache(all_tasks)
     for task in all_tasks:
+        # print(task.operation.identity,
+        #       get_task_limit(all_tasks, task.operation.identity))
         if task.quantity == 0:
             continue
         for equipment_group in all_equipment_groups.values():
@@ -21,7 +27,7 @@ def calculate_tasks(
                        ) // max(
                 task.operation.human_labor,
                 0.0001
-            )
+            ) + 1
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
@@ -39,13 +45,14 @@ def calculate_tasks(
                     (machine_labor_limit - equipment.machine_labor) // max(
                         task.operation.machine_labor,
                         0.0001
-                    )
+                    ) + 1,
+                    get_task_limit(task.operation.identity, cache)
                 )
                 if quantity <= 0:
                     continue
                 new_task = Task(
                     task.operation,
-                    min(quantity + 1, task.quantity),
+                    min(quantity, task.quantity),
                     task.date,
                     task.order
                 )
@@ -68,20 +75,22 @@ def calculate_tasks(
             if equipment_group.human_labor > human_labor_limit:
                 continue
             quantity = (
-                               human_labor_limit - equipment_group.human_labor
-                       ) // max(
-                task.operation.human_labor,
-                0.0001
+                (
+                        human_labor_limit - equipment_group.human_labor
+                ) // max(
+                    task.operation.human_labor,
+                    0.0001
+                ) + 1,
+                get_task_limit(task.operation.identity, cache)
             )
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
                 quantity = (
-                                   human_labor_limit - equipment_group.human_labor
-                           ) // max(
-                    task.operation.human_labor,
-                    0.0001
-                )
+                        (
+                                human_labor_limit - equipment_group.human_labor
+                        ) // max(task.operation.human_labor, 0.0001)
+                ) + 1
                 if equipment.machine_labor > machine_labor_limit:
                     continue
                 if task.operation in setups:
@@ -97,7 +106,10 @@ def calculate_tasks(
                             quantity,
                             (machine_labor_limit - (
                                     equipment.machine_labor + task.setup_labor
-                            )) // max(task.operation.machine_labor, 0.001)
+                            )) // max(task.operation.machine_labor, 0.001),
+                            get_task_limit(
+                                task.operation.identity, cache
+                            ) + 1
                         )
                     else:
                         quantity = 0
@@ -109,13 +121,16 @@ def calculate_tasks(
                         (machine_labor_limit - equipment.machine_labor) // max(
                             task.operation.machine_labor,
                             0.0001
+                        ) + 1,
+                        get_task_limit(
+                            task.operation.identity, cache
                         )
                     )
                 if quantity <= 0:
                     continue
                 new_task = Task(
                     task.operation,
-                    min(quantity + 1, task.quantity),
+                    min(quantity, task.quantity),
                     task.date,
                     task.order
                 )
