@@ -27,7 +27,7 @@ def calculate_tasks(
                        ) // max(
                 task.operation.human_labor,
                 0.0001
-            ) + 1
+            )
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
@@ -35,20 +35,17 @@ def calculate_tasks(
                     continue
                 if equipment.machine_labor > machine_labor_limit:
                     continue
-                # if task.operation in setups:
-                #     if setups[task.operation] != equipment:
-                #         continue
                 if equipment.identity not in task.operation.equipment_class.equipment:
                     continue
                 quantity = min(
-                    quantity,
+                    quantity + 1,
                     (machine_labor_limit - equipment.machine_labor) // max(
                         task.operation.machine_labor,
                         0.0001
                     ) + 1,
                     get_task_limit(task.operation.identity, cache)
                 )
-                if quantity <= 0:
+                if quantity <= 0 or task.quantity <= 0:
                     continue
                 new_task = Task(
                     task.operation,
@@ -64,6 +61,7 @@ def calculate_tasks(
                 break
 
     for task in all_tasks:
+        # сортируем группы по загрузке -- самая незагруженная вверху
         all_equipment_groups = dict(
             sorted(
                 all_equipment_groups.items(), key=lambda x: x[1].human_labor
@@ -74,23 +72,14 @@ def calculate_tasks(
         for equipment_group in all_equipment_groups.values():
             if equipment_group.human_labor > human_labor_limit:
                 continue
-            quantity = (
-                (
-                        human_labor_limit - equipment_group.human_labor
-                ) // max(
-                    task.operation.human_labor,
-                    0.0001
-                ) + 1,
-                get_task_limit(task.operation.identity, cache)
+            quantity = (human_labor_limit - equipment_group.human_labor
+                        ) // max(
+                task.operation.human_labor,
+                0.0001
             )
             if quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
-                quantity = (
-                        (
-                                human_labor_limit - equipment_group.human_labor
-                        ) // max(task.operation.human_labor, 0.0001)
-                ) + 1
                 if equipment.machine_labor > machine_labor_limit:
                     continue
                 if task.operation in setups:
@@ -103,21 +92,17 @@ def calculate_tasks(
                     if equipment.machine_labor + task.setup_labor <= \
                             machine_labor_limit:
                         quantity = min(
-                            quantity,
+                            quantity + 1,
                             (machine_labor_limit - (
                                     equipment.machine_labor + task.setup_labor
-                            )) // max(task.operation.machine_labor, 0.001),
-                            get_task_limit(
-                                task.operation.identity, cache
-                            ) + 1
+                            )) // max(task.operation.machine_labor, 0.001) + 1,
+                            get_task_limit(task.operation.identity, cache)
                         )
                     else:
                         quantity = 0
-                    # if task.setup_labor > task.operation.machine_labor and quantity / task.quantity < 0.1:
-                    #     continue
                 else:
                     quantity = min(
-                        quantity,
+                        quantity + 1,
                         (machine_labor_limit - equipment.machine_labor) // max(
                             task.operation.machine_labor,
                             0.0001
@@ -126,7 +111,7 @@ def calculate_tasks(
                             task.operation.identity, cache
                         )
                     )
-                if quantity <= 0:
+                if quantity <= 0 or task.quantity <= 0:
                     continue
                 new_task = Task(
                     task.operation,

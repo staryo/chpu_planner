@@ -71,7 +71,7 @@ class Archive:
                         operation_id = f"!NOK! {operation_id}"
                     else:
                         operation_id = f"!OK! {operation_id}"
-                    row[get_humanized_data(day, step)] = f"{operation_id}: {task.quantity} шт"
+                    row[get_humanized_data(day, step)] = f"{operation_id}: {int(task.quantity)} шт"
                 report.append(row)
                 task_number += 1
         report.append(add_total_data(setup_labor, 'НАЛАДКИ'))

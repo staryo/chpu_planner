@@ -80,7 +80,7 @@ def daily_task_report(all_equipment_groups):
                     if task_sum[each]['QUANTITY'] > 0:
                         setup_time = 0
                     else:
-                        setup_time = task_sum[each]['QUANTITY_NOK']
+                        setup_time = task_sum[each]['SETUP_TIME']
                     report.append({
                         'ГРУППА': '',
                         'ИНВ. НОМЕР': equipment.humanized_identity,
