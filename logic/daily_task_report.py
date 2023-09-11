@@ -1,7 +1,6 @@
 def daily_task_report(all_equipment_groups):
     report = []
     for equipment_group in all_equipment_groups.values():
-        # print(equipment_group.identity, equipment_group.human_labor)
         report.append({
             'ГРУППА': equipment_group.identity,
             'ИНВ. НОМЕР': '',
@@ -21,7 +20,8 @@ def daily_task_report(all_equipment_groups):
         for equipment in equipment_group.equipment.values():
             # print(equipment.identity, equipment.machine_labor)
             if equipment.initial_setup:
-                operation_id = f"НАЛАДКА: {equipment.initial_setup.entity} [{equipment.initial_setup.nop}]"
+                operation_id = (f"НАЛАДКА: {equipment.initial_setup.entity} "
+                                f"[{equipment.initial_setup.nop}]")
                 route_id = equipment.initial_setup.identity.split('_')[1][1]
             else:
                 operation_id = 'НАЛАДКИ НЕТ'

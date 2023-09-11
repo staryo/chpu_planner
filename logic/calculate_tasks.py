@@ -57,8 +57,11 @@ def calculate_tasks(
                 if task.quantity > 0:
                     final_setup[equipment] = new_task.operation
                 equipment.schedule.append(new_task)
+                # print(equipment.machine_labor)
+                # print(equipment_group.human_labor)
+                # print(equipment.identity, equipment_group.identity)
                 setups[new_task.operation] = equipment
-                break
+                # break
 
     for task in all_tasks:
         # сортируем группы по загрузке -- самая незагруженная вверху
@@ -124,5 +127,4 @@ def calculate_tasks(
                     final_setup[equipment] = new_task.operation
                 equipment.schedule.append(new_task)
                 setups[new_task.operation] = equipment
-                break
     return all_equipment_groups

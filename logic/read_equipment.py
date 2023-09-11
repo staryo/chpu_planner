@@ -15,9 +15,9 @@ def read_equipment(config):
 
         if not (row['GROUP']):
             continue
-        if row['GROUP'] not in all_equipment_groups:
-            all_equipment_groups[row['GROUP']] = EquipmentGroup(
-                identity=row['GROUP']
+        if str(row['GROUP']) not in all_equipment_groups:
+            all_equipment_groups[str(row['GROUP'])] = EquipmentGroup(
+                identity=str(row['GROUP'])
             )
         if str(row['EQUIPMENT_ID']) not in all_equipment_classes:
             all_equipment_classes[str(row['EQUIPMENT_ID'])] = EquipmentClass(
@@ -29,8 +29,8 @@ def read_equipment(config):
             machine_id += f" / {row['Порядковый номер']}"
         all_equipment_classes[
             str(row['EQUIPMENT_ID'])
-        ].equipment[row['ID']] = Equipment(
-            identity=row['ID'],
+        ].equipment[str(row['ID'])] = Equipment(
+            identity=str(row['ID']),
             humanized_identity=machine_id,
             model=row['MODEL'],
             equipment_class=all_equipment_classes[
@@ -38,8 +38,8 @@ def read_equipment(config):
             ],
             equipment_group=row['GROUP']
         )
-        all_equipment_groups[row['GROUP']].equipment[row['ID']] = \
+        all_equipment_groups[str(row['GROUP'])].equipment[str(row['ID'])] = \
             all_equipment_classes[str(row['EQUIPMENT_ID'])].equipment[
-                row['ID']]
+                str(row['ID'])]
 
     return all_equipment_classes, all_equipment_groups

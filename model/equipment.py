@@ -9,6 +9,9 @@ class Equipment:
         self.initial_setup = None
         self.schedule = []
 
+    def __repr__(self):
+        return self.humanized_identity
+
     @property
     def machine_labor(self):
         total = 0
