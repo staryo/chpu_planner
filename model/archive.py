@@ -19,7 +19,7 @@ class Archive:
     def get_humanized_data(period_number, step_value):
         return (
                 datetime.now().replace(
-                    hour=8,
+                    hour=7,
                     minute=0,
                     second=0,
                     microsecond=0
