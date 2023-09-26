@@ -73,7 +73,6 @@ def chpu_planner():
         phase = defaultdict(float)
         for row in phase_list:
             phase[row['operation_id']] = float(row['human_labor'])
-        print(phase)
 
 
         dict_to_excel(daily_task_report(all_equipment_groups),
