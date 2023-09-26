@@ -1,5 +1,4 @@
 import csv
-from collections import defaultdict
 from argparse import ArgumentParser
 from os import getcwd
 from os.path import join
