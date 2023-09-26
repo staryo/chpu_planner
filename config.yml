@@ -2,6 +2,7 @@ input:
   equipment: example/Equipment_c_порядковыми_номерами_Scada_действует_с_02_08_2023.xlsx
   setups: example/setups_{}.xlsx
   tasks: example/tasks_{}.xlsx
+  phase: example/phase.csv
 
 output:
   daily_tasks: example/result_{}.xlsx

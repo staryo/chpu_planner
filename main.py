@@ -35,6 +35,14 @@ def chpu_planner():
     if args.days:
         config['rules']['days_number'] = int(args.days)
 
+    with open(config['input']['phase'], 'r', encoding='utf-8') as input_file:
+        phase_list = list(csv.DictReader(
+            input_file
+        ))
+    phase_dict = {}
+    for row in phase_list:
+        phase_dict[row['operation_id']] = float(row['human_labor'])
+
     archive = Archive()
 
     for day in tqdm(range(config['rules']['days_number'])):
@@ -66,15 +74,6 @@ def chpu_planner():
             )
         )
 
-        with open(config['input']['phase'], 'r', encoding='utf-8') as input_file:
-            phase_list = list(csv.DictReader(
-                input_file
-            ))
-        phase = defaultdict(float)
-        for row in phase_list:
-            phase[row['operation_id']] = float(row['human_labor'])
-
-
         dict_to_excel(daily_task_report(all_equipment_groups),
                       config['output']['daily_tasks'].format(day + 1))
 
@@ -90,6 +89,14 @@ def chpu_planner():
 
     dict_to_excel(archive.several_days_report(config['rules']['step']),
                   config['output']['daily_tasks'].format('all'))
+
+    dict_to_excel(
+        archive.labor_report(
+            config['rules']['step'],
+            phase_dict
+        ),
+        config['output']['daily_tasks'].format('labor')
+    )
 
 
 if __name__ == '__main__':
