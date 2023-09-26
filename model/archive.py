@@ -131,7 +131,7 @@ class Archive:
                 'КОД КСАУП': entity_identity[entity],
                 'ТРУДОЕМКОСТЬ ЦЕХОЗАХОДА': entity_labor[entity],
             }
-            for day in total_labor:
+            for day in sorted(total_labor):
                 row[
                     self.get_humanized_data(day, step)
                 ] = daily_entities[entity][day] or ''
