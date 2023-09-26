@@ -1,3 +1,5 @@
+import csv
+from collections import defaultdict
 from argparse import ArgumentParser
 from os import getcwd
 from os.path import join
@@ -63,6 +65,16 @@ def chpu_planner():
                 all_equipment_groups.items(), key=lambda x: x[1].identity
             )
         )
+
+        with open(config['input']['phase'], 'r', encoding='utf-8') as input_file:
+            phase_list = list(csv.DictReader(
+                input_file
+            ))
+        phase = defaultdict(float)
+        for row in phase_list:
+            phase[row['operation_id']] = float(row['human_labor'])
+        print(phase)
+
 
         dict_to_excel(daily_task_report(all_equipment_groups),
                       config['output']['daily_tasks'].format(day + 1))
