@@ -25,9 +25,9 @@ def chpu_planner():
                         default=join(getcwd(), 'config.yml'))
     parser.add_argument('-d', '--days', required=False,
                         default=None)
-    parser.add_argument('-h', '--human', required=False,
+    parser.add_argument('-hl', '--human', required=False,
                         default=None)
-    parser.add_argument('-m', '--machine', required=False,
+    parser.add_argument('-ml', '--machine', required=False,
                         default=None)
     parser.add_argument('-s', '--step', required=False,
                         default=None)
@@ -40,9 +40,9 @@ def chpu_planner():
     if args.days:
         config['rules']['days_number'] = int(args.days)
     if args.human:
-        config['rules']['human_labor_limit'] = int(args.human)
+        config['rules']['human_labor_limit'] = float(args.human)
     if args.machine:
-        config['rules']['machine_labor_limit'] = int(args.machine)
+        config['rules']['machine_labor_limit'] = float(args.machine)
     if args.step:
         config['rules']['step'] = int(args.step)
 

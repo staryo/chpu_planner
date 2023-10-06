@@ -118,17 +118,17 @@ class Archive:
                     total_labor[day] += (
                             labor_dict[task.operation.identity] * task.quantity
                     )
-                    entity_labor[task.operation.entity] = labor_dict[
+                    entity_labor[task.operation.identity[:18]] = labor_dict[
                         task.operation.identity
                     ]
-                    entity_identity[task.operation.entity] \
-                        = task.operation.identity[:18]
-                    daily_entities[task.operation.entity][day] += task.quantity
-                    total_entities[task.operation.entity] += task.quantity
+                    entity_identity[task.operation.identity[:18]] \
+                        = task.operation.entity
+                    daily_entities[task.operation.identity[:18]][day] += task.quantity
+                    total_entities[task.operation.identity[:18]] += task.quantity
         for entity in sorted(total_entities):
             row = {
-                'ДСЕ': entity,
-                'КОД КСАУП': entity_identity[entity],
+                'ДСЕ': entity_identity[entity],
+                'КОД КСАУП': entity,
                 'ТРУДОЕМКОСТЬ ЦЕХОЗАХОДА': entity_labor[entity],
             }
             for day in sorted(total_labor):
