@@ -19,7 +19,7 @@ def read_tasks(tasks_path, all_equipment_classes, dept_id):
                 entity=row.get('ENTITY'),
                 nop=row.get('NOP'),
                 name='',
-                equipment_class=all_equipment_classes[row['EQUIPMENT_ID']],
+                equipment_class=all_equipment_classes[row['EQUIPMENT_CLASS_ID']],
                 machine_labor=row['MACHINE_LABOR'] / 60,
                 human_labor=row['HUMAN_LABOR'] / 60,
                 setup_time=row['SETUP_LABOR'] / 60

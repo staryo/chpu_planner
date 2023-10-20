@@ -3,7 +3,7 @@ def tasks_left_report(all_tasks):
         'OPERATION_ID': task.operation.identity,
         'ENTITY': task.operation.entity,
         'NOP': task.operation.nop,
-        'EQUIPMENT_ID': task.operation.equipment_class.identity,
+        'EQUIPMENT_CLASS_ID': task.operation.equipment_class.identity,
         'DATE': task.date,
         'QUANTITY': task.quantity,
         'SETUP_LABOR': task.operation.setup_time * 60,
