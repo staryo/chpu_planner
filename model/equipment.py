@@ -1,10 +1,16 @@
 class Equipment:
-    def __init__(self, identity, model, equipment_class):
+    def __init__(self, identity, humanized_identity, model, equipment_class,
+                 equipment_group):
         self.identity = identity
+        self.humanized_identity = humanized_identity
         self.model = model
         self.equipment_class = equipment_class
+        self.equipment_group = equipment_group
         self.initial_setup = None
         self.schedule = []
+
+    def __repr__(self):
+        return self.humanized_identity
 
     @property
     def machine_labor(self):

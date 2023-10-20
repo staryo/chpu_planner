@@ -1,13 +1,15 @@
 input:
-  equipment: example/equipment.xlsx
-  tasks: example/tasks.xlsx
-  setups: example/setups.xlsx
+  equipment: example/Equipment_c_порядковыми_номерами_Scada_действует_с_02_08_2023.xlsx
+  setups: example/setups_{}.xlsx
+  tasks: example/tasks_{}.xlsx
+  phase: example/phase.csv
 
 output:
-  daily_tasks: example/result_1.xlsx
-  final_setups: example/setups_1.xlsx
-  tasks_left: example/tasks_1.xlsx
+  daily_tasks: example/result_{}.xlsx
 
 rules:
   human_labor_limit: 12
   machine_labor_limit: 11
+  days_number: 99
+  dept_id: '1052'
+  step: 12
