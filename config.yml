@@ -10,6 +10,6 @@ output:
 rules:
   human_labor_limit: 12
   machine_labor_limit: 11
-  days_number: 99
+  days_number: 14
   dept_id: '1052'
   step: 12

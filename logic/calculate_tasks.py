@@ -72,15 +72,17 @@ def calculate_tasks(
         )
         if task.quantity == 0:
             continue
+        if '6В10.01.017' in task.order:
+            a = 1
         for equipment_group in all_equipment_groups.values():
             if equipment_group.human_labor > human_labor_limit:
                 continue
-            quantity = (human_labor_limit - equipment_group.human_labor
-                        ) // max(
+            labor_quantity = (human_labor_limit - equipment_group.human_labor
+                              ) // max(
                 task.operation.human_labor,
                 0.0001
             )
-            if quantity == 0:
+            if labor_quantity == 0:
                 continue
             for equipment in equipment_group.equipment.values():
                 if equipment.machine_labor > machine_labor_limit:
@@ -95,7 +97,7 @@ def calculate_tasks(
                     if equipment.machine_labor + task.setup_labor <= \
                             machine_labor_limit:
                         quantity = min(
-                            quantity + 1,
+                            labor_quantity + 1,
                             (machine_labor_limit - (
                                     equipment.machine_labor + task.setup_labor
                             )) // max(task.operation.machine_labor, 0.001) + 1,
@@ -105,7 +107,7 @@ def calculate_tasks(
                         quantity = 0
                 else:
                     quantity = min(
-                        quantity + 1,
+                        labor_quantity + 1,
                         (machine_labor_limit - equipment.machine_labor) // max(
                             task.operation.machine_labor,
                             0.0001
@@ -122,9 +124,38 @@ def calculate_tasks(
                     task.date,
                     task.order
                 )
-                task.quantity = task.quantity - new_task.quantity
-                if task.quantity > 0:
-                    final_setup[equipment] = new_task.operation
+                task.quantity -= new_task.quantity
+                final_setup[equipment] = new_task.operation
                 equipment.schedule.append(new_task)
                 setups[new_task.operation] = equipment
+                labor_quantity -= new_task.quantity
+                if quantity == 0:
+                    continue
+                for similar_task in all_tasks:
+                    if similar_task.operation != new_task.operation:
+                        continue
+                    quantity_to_take = min(
+                        labor_quantity,
+                        similar_task.quantity,
+                        get_task_limit(
+                            task.operation.identity,
+                            cache
+                        ),
+                        (machine_labor_limit - equipment.machine_labor
+                         ) // max(
+                            task.operation.machine_labor,
+                            0.0001
+                        ) + 1,
+                    )
+                    if quantity_to_take == 0:
+                        continue
+                    new_task = Task(
+                        similar_task.operation,
+                        quantity_to_take,
+                        similar_task.date,
+                        similar_task.order
+                    )
+                    similar_task.quantity -= new_task.quantity
+                    equipment.schedule.append(new_task)
+                    final_setup[equipment] = new_task.operation
     return all_equipment_groups
