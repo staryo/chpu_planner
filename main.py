@@ -25,6 +25,12 @@ def chpu_planner():
                         default=join(getcwd(), 'config.yml'))
     parser.add_argument('-d', '--days', required=False,
                         default=None)
+    parser.add_argument('-hl', '--human', required=False,
+                        default=None)
+    parser.add_argument('-ml', '--machine', required=False,
+                        default=None)
+    parser.add_argument('-s', '--step', required=False,
+                        default=None)
 
     args = parser.parse_args()
 
@@ -33,6 +39,12 @@ def chpu_planner():
     config = read_config(args.config)
     if args.days:
         config['rules']['days_number'] = int(args.days)
+    if args.human:
+        config['rules']['human_labor_limit'] = float(args.human)
+    if args.machine:
+        config['rules']['machine_labor_limit'] = float(args.machine)
+    if args.step:
+        config['rules']['step'] = int(args.step)
 
     with open(config['input']['phase'], 'r', encoding='utf-8') as input_file:
         phase_list = list(csv.DictReader(
