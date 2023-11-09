@@ -149,3 +149,23 @@ class Archive:
             )
         )
         return report
+
+
+    def raport_report(self, step):
+        report = []
+        daily_operation = defaultdict(lambda: defaultdict(float))
+        for equipment in self.schedule.values():
+            for day, tasks in equipment.items():
+                for task in tasks.schedule:
+                    daily_operation[task.operation.identity][day] += task.quantity
+        for operation in daily_operation:
+            for day in daily_operation[operation]:
+                row = {
+                    'operationIdentity': operation,
+                    'assemblyElementIdentity': (operation.split('-')[0].zfill(18) if '-' in operation else operation[:18]),
+                    'dateBegin': (self.get_humanized_data(daily_operation[operation][day], step)).split(' ')[0],
+                    'timeBegin': f"{(self.get_humanized_data(daily_operation[operation][day], step)).split(' ')[1]}:00",
+                    'quantityPlan': daily_operation[operation][day],
+                }
+                report.append(row)
+        return report
