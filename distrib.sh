@@ -4,7 +4,7 @@ docker run \
     --rm \
     --workdir='/usr/src/myapp' \
     -v "${PROJECT_DIRPATH}:/usr/src/myapp" \
-    python:3.8 bash -c "apt update ; apt install --yes unixodbc-dev;
+    python:3.8-bullseye bash -c "apt update ; apt install --yes unixodbc-dev;
                                pip install -r requirements.txt;
                                pip3 install pyinstaller;
                                pyinstaller main.py \
