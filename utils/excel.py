@@ -6,7 +6,10 @@ def excel_to_dict(excel_path):
     workbook = openpyxl.load_workbook(excel_path)
 
     # Select the first sheet
-    worksheet = workbook.active
+    if "Default" in workbook.sheetnames:
+        worksheet = workbook["Default"]
+    else:
+        worksheet = workbook.active
 
     # Get the header row as a list
     header = [cell.value for cell in worksheet[1]]
