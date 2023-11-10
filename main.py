@@ -108,13 +108,13 @@ def chpu_planner():
         ),
         config['output']['daily_tasks'].format('labor')
     )
-
-    dict_to_excel(
-        archive.raport_report(
-            config['rules']['step']
-        ),
-        config['output']['daily_tasks'].format('raport')
-    )
+    #
+    # dict_to_excel(
+    #     archive.raport_report(
+    #         config['rules']['step']
+    #     ),
+    #     config['output']['daily_tasks'].format('raport')
+    # )
 
 if __name__ == '__main__':
     chpu_planner()
