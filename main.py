@@ -4,6 +4,8 @@ from os import getcwd
 from os.path import join
 
 from tqdm import tqdm
+import json
+
 
 from config.config import read_config
 from logic.calculate_tasks import calculate_tasks
@@ -15,6 +17,9 @@ from logic.read_tasks import read_tasks
 from logic.tasks_left_report import tasks_left_report
 from model.archive import Archive
 from utils.excel import dict_to_excel
+
+from utils.listofdicts_to_csv import dict2csv
+
 
 
 def chpu_planner():
@@ -109,6 +114,10 @@ def chpu_planner():
         config['output']['daily_tasks'].format('labor')
     )
 
+    # dict2csv(archive.raport_report(
+    #         config['rules']['step']
+    #     ), config['output']['raport'])
+
     dict_to_excel(
         archive.raport_report(
             config['rules']['step']
@@ -116,6 +125,12 @@ def chpu_planner():
         config['output']['daily_tasks'].format('raport')
     )
 
+    with open(config['output']['raport'], 'w', encoding='utf-8') as output_file:
+        json.dump(archive.raport_report_2(
+            config['rules']['step']
+            ),
+            output_file
+        )
 
 if __name__ == '__main__':
     chpu_planner()
