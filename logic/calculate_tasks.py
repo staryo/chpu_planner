@@ -147,7 +147,7 @@ def calculate_tasks(
                             0.0001
                         ) + 1,
                     )
-                    if quantity_to_take == 0:
+                    if quantity_to_take <= 0:
                         continue
                     new_task = Task(
                         similar_task.operation,
