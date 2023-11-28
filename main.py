@@ -59,6 +59,17 @@ def chpu_planner():
     for row in phase_list:
         phase_dict[row['operation_id']] = float(row['human_labor'])
 
+    cycle_list = {}
+    try:
+        with open(config['input']['cycle'], 'r', encoding='utf-8') as input_file:
+            cycle_list = list(csv.DictReader(
+                input_file
+            ))
+    except BaseException:
+        print('В конфигурационном файле нет ссылки на циклы, циклы по переходам не будут учтены')
+
+    print(cycle_list)
+
     archive = Archive()
 
     for day in tqdm(range(config['rules']['days_number'])):
