@@ -1,4 +1,5 @@
 import csv
+import math
 from argparse import ArgumentParser
 from os import getcwd
 from os.path import join
@@ -62,9 +63,15 @@ def chpu_planner():
     cycle_list = {}
     try:
         with open(config['input']['cycle'], 'r', encoding='utf-8') as input_file:
-            cycle_list = list(csv.DictReader(
+            for row in list(csv.DictReader(
                 input_file
-            ))
+            )):
+                cycle_list[row['ROUTE_PHASE_previous']] = {
+                    'NEXT_PHASE': row['ROUTE_PHASE_past'],
+                    'CYCLE': math.ceil(
+                        int(row['cycle_delta']) / config['rules']['step']
+                    ) + 1
+                }
     except BaseException:
         print('В конфигурационном файле нет ссылки на циклы, циклы по переходам не будут учтены')
 
@@ -142,6 +149,7 @@ def chpu_planner():
             ),
             output_file
         )
+
 
 if __name__ == '__main__':
     chpu_planner()
