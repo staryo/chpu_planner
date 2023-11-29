@@ -1,6 +1,8 @@
 import sys
+from collections import defaultdict
 
-from logic.tasks_limit import get_task_limit, get_task_limit_cache
+from logic.tasks_limit import get_task_limit, get_task_limit_cache, \
+    have_to_minus
 from model.task import Task
 
 
@@ -10,13 +12,17 @@ def calculate_tasks(
         all_equipment_setups,
         final_setup,
         human_labor_limit,
-        machine_labor_limit
+        machine_labor_limit,
+        phase_data,
+        counter=None
 ):
     setups = {}
     cache = get_task_limit_cache(all_tasks)
+    counter = counter or defaultdict(lambda: defaultdict(int))
+    all_depended_phases = set(
+        [row['NEXT_PHASE'] for row in phase_data.values()]
+    )
     for task in all_tasks:
-        # print(task.operation.identity,
-        #       get_task_limit(all_tasks, task.operation.identity))
         if task.quantity == 0:
             continue
         for equipment_group in all_equipment_groups.values():
@@ -35,6 +41,8 @@ def calculate_tasks(
                     continue
                 if equipment.machine_labor > machine_labor_limit:
                     continue
+                if '207400000001-Y' in task.operation.identity:
+                    a = 1
                 if equipment.identity not in task.operation.equipment_class.equipment:
                     continue
                 quantity = min(
@@ -43,7 +51,14 @@ def calculate_tasks(
                         task.operation.machine_labor,
                         0.0001
                     ) + 1,
-                    get_task_limit(task.operation.identity, cache)
+                    get_task_limit(
+                        task.operation.identity,
+                        cache,
+                        counter,
+                        ('_OK' in task.order) or ("_".join(
+                            task.operation.identity.split('_')[:2]
+                        ) not in all_depended_phases)
+                    )
                 )
                 if quantity <= 0 or task.quantity <= 0:
                     continue
@@ -54,14 +69,25 @@ def calculate_tasks(
                     task.order
                 )
                 task.quantity = task.quantity - new_task.quantity
-                if task.quantity > 0:
-                    final_setup[equipment] = new_task.operation
+                final_setup[equipment] = new_task.operation
                 equipment.schedule.append(new_task)
-                # print(equipment.machine_labor)
-                # print(equipment_group.human_labor)
-                # print(equipment.identity, equipment_group.identity)
                 setups[new_task.operation] = equipment
-                # break
+                if have_to_minus(
+                    task.operation.identity,
+                    cache,
+                    ('_OK' in task.order) or ("_".join(
+                        task.operation.identity.split('_')[:2]
+                    ) not in all_depended_phases)
+                ):
+                    counter[
+                        "_".join(task.operation.identity.split('_')[:2])
+                    ][0] -= new_task.quantity
+                if task.operation.identity in phase_data:
+                    next_phase_data = phase_data[task.operation.identity]
+                    if next_phase_data['NEXT_PHASE'] is not None:
+                        counter[
+                            next_phase_data['NEXT_PHASE']
+                        ][next_phase_data['CYCLE']] += new_task.quantity
 
     for task in all_tasks:
         # сортируем группы по загрузке -- самая незагруженная вверху
@@ -72,8 +98,6 @@ def calculate_tasks(
         )
         if task.quantity == 0:
             continue
-        if '6В10.01.017' in task.order:
-            a = 1
         for equipment_group in all_equipment_groups.values():
             if equipment_group.human_labor > human_labor_limit:
                 continue
@@ -93,6 +117,8 @@ def calculate_tasks(
                 if equipment.identity not in \
                         task.operation.equipment_class.equipment:
                     continue
+                if '207400000001-Y' in task.operation.identity:
+                    a = 1
                 if setups.get(task.operation) != equipment:
                     if equipment.machine_labor + task.setup_labor <= \
                             machine_labor_limit:
@@ -101,7 +127,14 @@ def calculate_tasks(
                             (machine_labor_limit - (
                                     equipment.machine_labor + task.setup_labor
                             )) // max(task.operation.machine_labor, 0.001) + 1,
-                            get_task_limit(task.operation.identity, cache)
+                            get_task_limit(
+                                task.operation.identity,
+                                cache,
+                                counter,
+                                ('_OK' in task.order) or ("_".join(
+                                    task.operation.identity.split('_')[:2]
+                                ) not in all_depended_phases)
+                            )
                         )
                     else:
                         quantity = 0
@@ -113,7 +146,12 @@ def calculate_tasks(
                             0.0001
                         ) + 1,
                         get_task_limit(
-                            task.operation.identity, cache
+                            task.operation.identity,
+                            cache,
+                            counter,
+                            ('_OK' in task.order) or ("_".join(
+                                task.operation.identity.split('_')[:2]
+                            ) not in all_depended_phases)
                         )
                     )
                 if quantity <= 0 or task.quantity <= 0:
@@ -127,6 +165,22 @@ def calculate_tasks(
                 task.quantity -= new_task.quantity
                 final_setup[equipment] = new_task.operation
                 equipment.schedule.append(new_task)
+                if have_to_minus(
+                    task.operation.identity,
+                    cache,
+                    ('_OK' in task.order) or ("_".join(
+                        task.operation.identity.split('_')[:2]
+                    ) not in all_depended_phases)
+                ):
+                    counter[
+                        "_".join(task.operation.identity.split('_')[:2])
+                    ][0] -= new_task.quantity
+                if task.operation.identity in phase_data:
+                    next_phase_data = phase_data[task.operation.identity]
+                    if next_phase_data['NEXT_PHASE'] is not None:
+                        counter[
+                            next_phase_data['NEXT_PHASE']
+                        ][next_phase_data['CYCLE']] += new_task.quantity
                 setups[new_task.operation] = equipment
                 labor_quantity -= new_task.quantity
                 if quantity == 0:
@@ -139,7 +193,11 @@ def calculate_tasks(
                         similar_task.quantity,
                         get_task_limit(
                             task.operation.identity,
-                            cache
+                            cache,
+                            counter,
+                            ('_OK' in task.order) or ("_".join(
+                                task.operation.identity.split('_')[:2]
+                            ) not in all_depended_phases)
                         ),
                         (machine_labor_limit - equipment.machine_labor
                          ) // max(
@@ -157,5 +215,21 @@ def calculate_tasks(
                     )
                     similar_task.quantity -= new_task.quantity
                     equipment.schedule.append(new_task)
+                    if have_to_minus(
+                            task.operation.identity,
+                            cache,
+                            ('_OK' in task.order) or ("_".join(
+                                task.operation.identity.split('_')[:2]
+                            ) not in all_depended_phases)
+                    ):
+                        counter[
+                            "_".join(task.operation.identity.split('_')[:2])
+                        ][0] -= new_task.quantity
+                    if task.operation.identity in phase_data:
+                        next_phase_data = phase_data[task.operation.identity]
+                        if next_phase_data['NEXT_PHASE'] is not None:
+                            counter[
+                                next_phase_data['NEXT_PHASE']
+                            ][next_phase_data['CYCLE']] += new_task.quantity
                     final_setup[equipment] = new_task.operation
-    return all_equipment_groups
+    return all_equipment_groups, counter

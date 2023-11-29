@@ -4,6 +4,7 @@ input:
   tasks: example/tasks_{}.xlsx
   phase: example/phase.csv
   cycle: example/cycles.csv
+  counter: example/counter_{}.xlsx
 
 output:
   daily_tasks: example/result_{}.xlsx

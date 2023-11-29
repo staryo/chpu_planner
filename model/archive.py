@@ -116,15 +116,18 @@ class Archive:
                     if task.operation.identity not in labor_dict:
                         continue
                     total_labor[day] += (
-                            labor_dict[task.operation.identity] * task.quantity
+                            labor_dict[task.operation.identity]['LABOR']
+                            * task.quantity
                     )
                     entity_labor[task.operation.identity[:18]] = labor_dict[
                         task.operation.identity
-                    ]
+                    ]['LABOR']
                     entity_identity[task.operation.identity[:18]] \
                         = task.operation.entity
-                    daily_entities[task.operation.identity[:18]][day] += task.quantity
-                    total_entities[task.operation.identity[:18]] += task.quantity
+                    daily_entities[task.operation.identity[:18]][
+                        day] += task.quantity
+                    total_entities[
+                        task.operation.identity[:18]] += task.quantity
         for entity in sorted(total_entities):
             row = {
                 'ДСЕ': entity_identity[entity],
@@ -155,33 +158,40 @@ class Archive:
         for equipment in self.schedule.values():
             for day, tasks in equipment.items():
                 for task in tasks.schedule:
-                    daily_operation[task.operation.identity][day] += task.quantity
+                    daily_operation[task.operation.identity][
+                        day] += task.quantity
         return [{
             'operationIdentity': operation,
             'assemblyElementIdentity': (
-                operation.split('-')[0].zfill(18) if '-' in operation else operation[:18]
+                operation.split('-')[0].zfill(
+                    18) if '-' in operation else operation[:18]
             ),
             'dateBegin': (self.get_humanized_data(day, step)).split(' ')[0],
             'timeBegin': f"{(self.get_humanized_data(day, step)).split(' ')[1]}:00",
             'quantityPlan': daily_operation[operation][day],
-        } for operation in daily_operation for day in daily_operation[operation]]
+        } for operation in daily_operation for day in
+            daily_operation[operation]]
 
     def raport_report_2(self, step):
         daily_operation = defaultdict(lambda: defaultdict(float))
         for equipment in self.schedule.values():
             for day, tasks in equipment.items():
                 for task in tasks.schedule:
-                    daily_operation[task.operation.identity][day] += task.quantity
+                    daily_operation[task.operation.identity][
+                        day] += task.quantity
         return {
             f'{(self.get_humanized_data(day, step)).split(" ")[0]}_{(self.get_humanized_data(day, step)).split(" ")[1]}:00_{operation}':
-            {
-            'identity': f'{(self.get_humanized_data(day, step)).split(" ")[0]}_{(self.get_humanized_data(day, step)).split(" ")[1]}:00_{operation}',
-            'operationIdentity': operation,
-            'assemblyElementIdentity': (
-                operation.split('-')[0].zfill(18) if '-' in operation else operation[:18]
-            ),
-            'dateBegin': (self.get_humanized_data(day, step)).split(' ')[0],
-            'timeBegin': f"{(self.get_humanized_data(day, step)).split(' ')[1]}:00",
-            'quantityPlan': daily_operation[operation][day],
-            } for operation in daily_operation for day in daily_operation[operation]
-            }
+                {
+                    'identity': f'{(self.get_humanized_data(day, step)).split(" ")[0]}_{(self.get_humanized_data(day, step)).split(" ")[1]}:00_{operation}',
+                    'operationIdentity': operation,
+                    'assemblyElementIdentity': (
+                        operation.split('-')[0].zfill(
+                            18) if '-' in operation else operation[:18]
+                    ),
+                    'dateBegin':
+                        (self.get_humanized_data(day, step)).split(' ')[0],
+                    'timeBegin': f"{(self.get_humanized_data(day, step)).split(' ')[1]}:00",
+                    'quantityPlan': daily_operation[operation][day],
+                } for operation in daily_operation for day in
+            daily_operation[operation]
+        }
