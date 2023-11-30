@@ -9,3 +9,4 @@ class Operation:
         self.machine_labor = machine_labor
         self.human_labor = human_labor
         self.setup_time = setup_time
+

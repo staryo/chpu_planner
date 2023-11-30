@@ -1,7 +1,8 @@
 class EquipmentGroup:
-    def __init__(self, identity):
+    def __init__(self, identity, profession):
         self.identity = identity
         self.equipment = {}
+        self.profession = profession
 
     @property
     def human_labor(self):
