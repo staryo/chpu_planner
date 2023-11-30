@@ -7,8 +7,7 @@ class Archive:
         self.schedule = defaultdict(lambda: defaultdict(dict))
 
     def add_day(self, equipment, day):
-        self.schedule[equipment.identity][
-            day] = equipment
+        self.schedule[equipment.identity][day] = equipment
 
     def add_total_data(self, new_row, values, step):
         for total_day, total_value in values.items():
@@ -31,6 +30,7 @@ class Archive:
         machine_labor = defaultdict(float)
         human_labor = defaultdict(float)
         setup_labor = defaultdict(float)
+        prof_labor = defaultdict(lambda: defaultdict(float))
         for equipment in self.schedule.values():
             check = True
             task_number = 0
@@ -38,14 +38,16 @@ class Archive:
                 check = False
                 row = None
                 for day, tasks in equipment.items():
+
                     if task_number == 0:
+                        prof_labor[tasks.equipment_group.profession][day] += tasks.human_labor
                         machine_labor[day] += tasks.machine_labor
                         setup_labor[day] += tasks.setup_labor
                         human_labor[day] += tasks.human_labor
                     if row is None:
                         if task_number == 0:
                             row = {
-                                'ГРУППА': tasks.equipment_group,
+                                'ГРУППА': tasks.equipment_group.identity,
                                 'ИНВ. НОМЕР': tasks.humanized_identity,
                                 'МОДЕЛЬ ОБОРУДОВАНИЯ': f"{tasks.equipment_class.name} "
                                                        f"[{tasks.equipment_class.identity}]",
@@ -101,6 +103,16 @@ class Archive:
                 human_labor,
                 step)
         )
+        for profession, labor in prof_labor.items():
+            report.append(
+                self.add_total_data(
+                    {   'ГРУППА': '',
+                        'ИНВ. НОМЕР': '',
+                        'МОДЕЛЬ ОБОРУДОВАНИЯ': profession,
+                    },
+                    labor,
+                    step)
+            )
         return report
 
     def labor_report(self, step, labor_dict):

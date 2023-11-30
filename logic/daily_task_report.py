@@ -1,10 +1,16 @@
+from collections import defaultdict
+
+
 def daily_task_report(all_equipment_groups):
     report = []
+    prof_sum = defaultdict(float)
+
     for equipment_group in all_equipment_groups.values():
         report.append({
             'ГРУППА': equipment_group.identity,
             'ИНВ. НОМЕР': '',
             'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
+            'ПРОФЕССИЯ': equipment_group.profession,
             'МАРШРУТ': '',
             'ДСЕ,ОПЕРАЦИЯ': '',
             'КОЛИЧЕСТВО': '',
@@ -20,7 +26,7 @@ def daily_task_report(all_equipment_groups):
         for equipment in equipment_group.equipment.values():
             # print(equipment.identity, equipment.machine_labor)
             if equipment.initial_setup:
-                operation_id = (f"НАЛАДКА: {equipment.initial_setup.entity} "
+                operation_id = (f"НАЛАДКА: {equipment.initial_setup.entity}"
                                 f"[{equipment.initial_setup.nop}]")
                 route_id = equipment.initial_setup.identity.split('_')[1][1]
             else:
@@ -31,6 +37,7 @@ def daily_task_report(all_equipment_groups):
                 'ИНВ. НОМЕР': equipment.humanized_identity,
                 'МОДЕЛЬ ОБОРУДОВАНИЯ': f"{equipment.equipment_class.name} "
                                        f"[{equipment.equipment_class.identity}]",
+                'ПРОФЕССИЯ': '',
                 'МАРШРУТ': route_id,
                 'ДСЕ,ОПЕРАЦИЯ': operation_id,
                 'КОЛИЧЕСТВО': '',
@@ -39,7 +46,9 @@ def daily_task_report(all_equipment_groups):
                 'НОРМОЧАСЫ': ''
             })
             task_sum = {}
+
             for task in equipment.schedule:
+                prof_sum[equipment_group.profession] += task.human_labor
                 if task.operation not in task_sum:
                     if equipment.initial_setup == task.operation:
                         setup_time = 0
@@ -68,6 +77,7 @@ def daily_task_report(all_equipment_groups):
                         'ГРУППА': '',
                         'ИНВ. НОМЕР': equipment.humanized_identity,
                         'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
+                        'ПРОФЕССИЯ': '',
                         'МАРШРУТ': f"{each.identity.split('_')[1][1]}",
                         'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}]",
                         'КОЛИЧЕСТВО': task_sum[each]['QUANTITY'],
@@ -85,6 +95,7 @@ def daily_task_report(all_equipment_groups):
                         'ГРУППА': '',
                         'ИНВ. НОМЕР': equipment.humanized_identity,
                         'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
+                        'ПРОФЕССИЯ': '',
                         'МАРШРУТ': f"{each.identity.split('_')[1][1]}",
                         'ДСЕ,ОПЕРАЦИЯ': f"{each.entity} [{each.nop}] !NOK!",
                         'КОЛИЧЕСТВО': task_sum[each]['QUANTITY_NOK'],
@@ -94,5 +105,17 @@ def daily_task_report(all_equipment_groups):
                         'НОРМОЧАСЫ': task_sum[each][
                                          'QUANTITY_NOK'] * each.human_labor
                     })
-
+    for profession, labor in prof_sum.items():
+        report.append({
+            'ГРУППА': '',
+            'ИНВ. НОМЕР': '',
+            'МОДЕЛЬ ОБОРУДОВАНИЯ': '',
+            'ПРОФЕССИЯ': profession,
+            'МАРШРУТ': '',
+            'ДСЕ,ОПЕРАЦИЯ': '',
+            'КОЛИЧЕСТВО': '',
+            'ВРЕМЯ НАЛАДКИ': '',
+            'СТАНКОЧАСЫ': '',
+            'НОРМОЧАСЫ': labor
+        })
     return report
