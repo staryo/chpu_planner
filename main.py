@@ -83,7 +83,14 @@ def chpu_planner():
             'CYCLE': (cycle_data.get(row['phase']) or {}).get('CYCLE')
         }
 
-    archive = Archive()
+    try:
+        shift = int(config['rules']['time_first_shift'])
+    except TypeError:
+        shift = 7
+    except KeyError:
+        shift = 7
+
+    archive = Archive(shift=shift)
 
     for day in tqdm(range(config['rules']['days_number'])):
         all_equipment_classes, all_equipment_groups = read_equipment(config)

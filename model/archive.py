@@ -3,8 +3,9 @@ from datetime import datetime, timedelta
 
 
 class Archive:
-    def __init__(self):
+    def __init__(self, shift):
         self.schedule = defaultdict(lambda: defaultdict(dict))
+        self.shift = shift
 
     def add_day(self, equipment, day):
         self.schedule[equipment.identity][day] = equipment
@@ -14,11 +15,11 @@ class Archive:
             new_row[self.get_humanized_data(total_day, step)] = total_value
         return new_row
 
-    @staticmethod
-    def get_humanized_data(period_number, step_value):
+#    @staticmethod
+    def get_humanized_data(self, period_number, step_value):
         return (
                 datetime.now().replace(
-                    hour=7,
+                    hour=self.shift,
                     minute=0,
                     second=0,
                     microsecond=0
