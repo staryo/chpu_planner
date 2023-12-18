@@ -36,6 +36,8 @@ def chpu_planner():
                         default=None)
     parser.add_argument('-s', '--step', required=False,
                         default=None)
+    parser.add_argument('-f', '--first', required=False,
+                        default=None)
 
     args = parser.parse_args()
 
@@ -50,6 +52,8 @@ def chpu_planner():
         config['rules']['machine_labor_limit'] = float(args.machine)
     if args.step:
         config['rules']['step'] = int(args.step)
+    if args.first:
+        config['rules']['time_first_shift'] = int(args.first)
 
     cycle_data = {}
     try:
