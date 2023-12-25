@@ -16,3 +16,4 @@ rules:
   days_number: 10
   dept_id: '1052'
   step: 12
+  time_first_shift: 19
