@@ -3,6 +3,7 @@ import math
 from argparse import ArgumentParser
 from os import getcwd
 from os.path import join
+from datetime import datetime
 
 from tqdm import tqdm
 import json
@@ -36,7 +37,9 @@ def chpu_planner():
                         default=None)
     parser.add_argument('-s', '--step', required=False,
                         default=None)
-    parser.add_argument('-f', '--first', required=False,
+    parser.add_argument('-fd', '--first_date', required=False,
+                        default=None)
+    parser.add_argument('-ft', '--first_time', required=False,
                         default=None)
 
     args = parser.parse_args()
@@ -52,8 +55,10 @@ def chpu_planner():
         config['rules']['machine_labor_limit'] = float(args.machine)
     if args.step:
         config['rules']['step'] = int(args.step)
-    if args.first:
-        config['rules']['time_first_shift'] = int(args.first)
+    if args.first_date:
+        config['rules']['date_first_shift'] = str(args.first_date)
+    if args.first_time:
+        config['rules']['time_first_shift'] = int(args.first_time)
 
     cycle_data = {}
     try:
@@ -69,10 +74,8 @@ def chpu_planner():
                     ) + 1
                 }
     except BaseException:
-        print(
-            'В конфигурационном файле нет ссылки на циклы, '
-            'циклы по переходам не будут учтены'
-        )
+        print('В конфигурационном файле нет ссылки на циклы, '
+              'циклы по переходам не будут учтены.')
 
     with open(config['input']['phase'], 'r', encoding='utf-8') as input_file:
         phase_list = list(csv.DictReader(
@@ -88,13 +91,16 @@ def chpu_planner():
         }
 
     try:
+        first_date = datetime.strptime(config['rules']['date_first_shift'],
+                                       '%d-%m-%Y')
         shift = int(config['rules']['time_first_shift'])
-    except TypeError:
-        shift = 7
-    except KeyError:
+    except (TypeError, KeyError, ValueError):
+        print("Произошла ошибка чтения исходных параметров "
+              "даты и времени для формирования отчётов ЧПУ.")
+        first_date = datetime.now()
         shift = 7
 
-    archive = Archive(shift=shift)
+    archive = Archive(first_date=first_date, shift=shift)
 
     for day in tqdm(range(config['rules']['days_number'])):
         all_equipment_classes, all_equipment_groups = read_equipment(config)

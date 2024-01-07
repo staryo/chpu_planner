@@ -1,10 +1,11 @@
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
 class Archive:
-    def __init__(self, shift):
+    def __init__(self, first_date, shift):
         self.schedule = defaultdict(lambda: defaultdict(dict))
+        self.first_date = first_date
         self.shift = shift
 
     def add_day(self, equipment, day):
@@ -18,7 +19,7 @@ class Archive:
 #    @staticmethod
     def get_humanized_data(self, period_number, step_value):
         return (
-                datetime.now().replace(
+                self.first_date.replace(
                     hour=self.shift,
                     minute=0,
                     second=0,
