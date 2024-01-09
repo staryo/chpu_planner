@@ -95,8 +95,10 @@ def chpu_planner():
                                        '%d-%m-%Y')
         shift = int(config['rules']['time_first_shift'])
     except (TypeError, KeyError, ValueError):
-        print("Произошла ошибка чтения исходных параметров "
+        print()
+        print("ВНИМАНИЕ! Произошла ошибка чтения исходных параметров "
               "даты и времени для формирования отчётов ЧПУ.")
+        print()
         first_date = datetime.now()
         shift = 7
 
