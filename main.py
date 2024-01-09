@@ -93,11 +93,16 @@ def chpu_planner():
     try:
         first_date = datetime.strptime(config['rules']['date_first_shift'],
                                        '%d-%m-%Y')
+    except ValueError:
+        first_date = datetime.now()
+
+    try:
         shift = int(config['rules']['time_first_shift'])
     except (TypeError, KeyError, ValueError):
-        print("Произошла ошибка чтения исходных параметров "
-              "даты и времени для формирования отчётов ЧПУ.")
-        first_date = datetime.now()
+        print()
+        print("ВНИМАНИЕ! Произошла ошибка чтения исходных параметров "
+              "времени начала смены для формирования отчётов ЧПУ.")
+        print()
         shift = 7
 
     archive = Archive(first_date=first_date, shift=shift)
