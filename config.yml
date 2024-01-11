@@ -5,16 +5,19 @@ input:
   phase: example/phase.csv
   cycle: example/cycles.csv
   counter: example/counter_{}.xlsx
+  spec: example/spec.csv
+  route_phase_first_operation: example/route_phase_first_operation.xlsx
 
 output:
   daily_tasks: example/result_{}.xlsx
   raport: example/raport.json
+  route_phases: example/route_phase_data.xlsx
 
 rules:
   human_labor_limit: 12
   machine_labor_limit: 11
-  days_number: 10
+  days_number: 4
   dept_id: '1052'
   step: 12
   date_first_shift: '07-01-2024'
-  time_first_shift: 08
+  time_first_shift: 07

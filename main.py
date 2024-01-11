@@ -19,7 +19,6 @@ from logic.read_tasks import read_tasks
 from logic.tasks_left_report import tasks_left_report
 from model.archive import Archive
 from utils.excel import dict_to_excel
-
 from utils.listofdicts_to_csv import dict2csv
 
 
@@ -93,16 +92,19 @@ def chpu_planner():
     try:
         first_date = datetime.strptime(config['rules']['date_first_shift'],
                                        '%d-%m-%Y')
+    except ValueError:
+        first_date = datetime.now()
+
+    try:
         shift = int(config['rules']['time_first_shift'])
     except (TypeError, KeyError, ValueError):
         print()
         print("ВНИМАНИЕ! Произошла ошибка чтения исходных параметров "
-              "даты и времени для формирования отчётов ЧПУ.")
+              "времени начала смены для формирования отчётов ЧПУ.")
         print()
-        first_date = datetime.now()
         shift = 7
 
-    archive = Archive(first_date=first_date, shift=shift)
+    archive = Archive(first_date=first_date, shift=shift, config=config)
 
     for day in tqdm(range(config['rules']['days_number'])):
         all_equipment_classes, all_equipment_groups = read_equipment(config)
@@ -168,8 +170,21 @@ def chpu_planner():
             for equipment in equipment_group.equipment.values():
                 archive.add_day(equipment, day)
 
-    dict_to_excel(archive.several_days_report(config['rules']['step']),
+    several_days_report, report_materials = archive.several_days_report(
+        step=config['rules']['step'])
+
+    dict_to_excel(several_days_report,
                   config['output']['daily_tasks'].format('all'))
+
+    # формируем этот отчёт если были NOK-заказы
+    # если в tasks_0 были только OK-заказы, то report_materials = []
+    if len(report_materials) > 0:
+        dict_to_excel(report_materials,
+                      config['output']['daily_tasks'].format('materials'))
+        archive.calculate_report_materials(
+            step=config['rules']['step'],
+            file_path=config['output']['daily_tasks'].format('materials')
+        )
 
     dict_to_excel(
         archive.labor_report(
