@@ -11,6 +11,9 @@ class Operation:
         self.setup_time = setup_time
         self.route_phase = self.identity[:18]
         self.route_letter = self.identity[-8]
+
+        #
+        self.max_setups = ...
         # self.first_in_route_phase = True if str(self.nop).startswith("001_") else False
 
     def check_in_route_phase(self):
