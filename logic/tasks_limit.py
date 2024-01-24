@@ -28,8 +28,6 @@ def get_task_limit_cache(all_tasks):
 
 
 def have_to_minus(operation_id, cache, allow_max):
-    if '5505D0000007-G0531_ZG01' in operation_id:
-        a = 1
     if allow_max:
         return False
     report = defaultdict(float)

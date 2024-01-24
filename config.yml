@@ -7,6 +7,7 @@ input:
   counter: example/counter_{}.xlsx
   spec: example/spec.csv
   route_phase_first_operation: example/route_phase_first_operation.xlsx
+  # operations_labor: example/operations_total_labor.csv
 
 output:
   daily_tasks: example/result_{}.xlsx
@@ -14,10 +15,11 @@ output:
   route_phases: example/route_phase_data.xlsx
 
 rules:
-  human_labor_limit: 12
-  machine_labor_limit: 11
-  days_number: 4
+  human_labor_limit: 17
+  machine_labor_limit: 11.5
+  days_number: 2
   dept_id: '1052'
   step: 12
   date_first_shift: '07-01-2024'
   time_first_shift: 07
+  max_shifts_for_one_setup: 20

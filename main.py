@@ -19,7 +19,7 @@ from logic.read_tasks import read_tasks
 from logic.tasks_left_report import tasks_left_report
 from model.archive import Archive
 from utils.excel import dict_to_excel
-from utils.listofdicts_to_csv import dict2csv
+# from utils.listofdicts_to_csv import dict2csv
 
 
 def chpu_planner():
@@ -40,6 +40,8 @@ def chpu_planner():
                         default=None)
     parser.add_argument('-ft', '--first_time', required=False,
                         default=None)
+    parser.add_argument('-sc', '--setups_coef', required=False,
+                        default=None)
 
     args = parser.parse_args()
 
@@ -58,6 +60,8 @@ def chpu_planner():
         config['rules']['date_first_shift'] = str(args.first_date)
     if args.first_time:
         config['rules']['time_first_shift'] = int(args.first_time)
+    if args.setups_coef:
+        config['rules']['max_shifts_for_one_setup'] = int(args.setups_coef)
 
     cycle_data = {}
     try:
@@ -110,17 +114,19 @@ def chpu_planner():
         all_equipment_classes, all_equipment_groups = read_equipment(config)
 
         all_tasks, all_operations = read_tasks(
-            config['input']['tasks'].format(day),
-            all_equipment_classes,
-            config['rules']['dept_id']
+            tasks_path=config['input']['tasks'].format(day),
+            all_equipment_classes=all_equipment_classes,
+            dept_id=config['rules']['dept_id'],
+            max_shifts_for_one_setup=config['rules']['max_shifts_for_one_setup']
         )
 
         counter = read_counter(
-            config['input']['counter'].format(day),
+            counter_path=config['input']['counter'].format(day)
         )
 
         final_setup, all_equipment_setups = read_setups(
-            config['input']['setups'].format(day), all_equipment_classes,
+            config['input']['setups'].format(day),
+            all_equipment_classes,
             all_operations
         )
 

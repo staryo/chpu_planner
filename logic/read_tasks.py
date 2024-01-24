@@ -1,9 +1,10 @@
 from model.operation import Operation
 from model.task import Task
+from logic import read_operations_total_labor
 from utils.excel import excel_to_dict
 
 
-def read_tasks(tasks_path, all_equipment_classes, dept_id):
+def read_tasks(tasks_path, all_equipment_classes, dept_id, max_shifts_for_one_setup):
     all_tasks = []
     all_operations = {}
     # tasks = sorted(
@@ -22,7 +23,9 @@ def read_tasks(tasks_path, all_equipment_classes, dept_id):
                 equipment_class=all_equipment_classes[row['EQUIPMENT_CLASS_ID']],
                 machine_labor=row['MACHINE_LABOR'] / 60,
                 human_labor=row['HUMAN_LABOR'] / 60,
-                setup_time=row['SETUP_LABOR'] / 60
+                setup_time=row['SETUP_LABOR'] / 60,
+                external_func=read_operations_total_labor,
+                max_shifts_for_one_setup=max_shifts_for_one_setup
             )
         all_tasks.append(Task(
             operation=all_operations[row['OPERATION_ID']],
