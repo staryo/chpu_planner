@@ -117,6 +117,7 @@ def chpu_planner():
             tasks_path=config['input']['tasks'].format(day),
             all_equipment_classes=all_equipment_classes,
             dept_id=config['rules']['dept_id'],
+            operations_total_labor_file_path=config['input']['operations_total_labor'],
             max_shifts_for_one_setup=config['rules']['max_shifts_for_one_setup']
         )
 
@@ -142,9 +143,8 @@ def chpu_planner():
         )
 
         all_equipment_groups = dict(
-            sorted(
-                all_equipment_groups.items(), key=lambda x: x[1].identity
-            )
+            sorted(all_equipment_groups.items(),
+                   key=lambda x: x[1].identity)
         )
 
         counter_report = []

@@ -7,7 +7,7 @@ input:
   counter: example/counter_{}.xlsx
   spec: example/spec.csv
   route_phase_first_operation: example/route_phase_first_operation.xlsx
-  # operations_labor: example/operations_total_labor.csv
+  operations_total_labor: example/operations_total_labor.csv
 
 output:
   daily_tasks: example/result_{}.xlsx

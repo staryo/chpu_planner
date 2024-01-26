@@ -1,16 +1,28 @@
+import csv
+import math
 from model.operation import Operation
 from model.task import Task
-from logic import read_operations_total_labor
 from utils.excel import excel_to_dict
 
 
-def read_tasks(tasks_path, all_equipment_classes, dept_id, max_shifts_for_one_setup):
+def read_tasks(tasks_path, all_equipment_classes, dept_id,
+               operations_total_labor_file_path,
+               max_shifts_for_one_setup):
     all_tasks = []
     all_operations = {}
     # tasks = sorted(
     #     excel_to_dict(tasks_path),
     #     key=lambda k: (k['ORDER'][:9], 1 if '_NOK' in k['ORDER'] else 0)
     # )
+
+    # словарь 'OPERATION_ID': 'MACHINE_SUM, shifts'
+    with open(operations_total_labor_file_path, 'r', encoding='utf-8') as file:
+        ops_total_labor_list = list(csv.DictReader(file))
+    operations_total_labor_dict = {}
+    for i in ops_total_labor_list:
+        operations_total_labor_dict[i['OPERATION_ID']] = int(
+            i['MACHINE_SUM, shifts'].split('.')[0])
+
     for row in excel_to_dict(tasks_path):
         if dept_id != (row.get('DEPT_ID') or dept_id):
             continue
@@ -24,9 +36,16 @@ def read_tasks(tasks_path, all_equipment_classes, dept_id, max_shifts_for_one_se
                 machine_labor=row['MACHINE_LABOR'] / 60,
                 human_labor=row['HUMAN_LABOR'] / 60,
                 setup_time=row['SETUP_LABOR'] / 60,
-                external_func=read_operations_total_labor,
-                max_shifts_for_one_setup=max_shifts_for_one_setup
+                # вернём число 1 как максимальное кол-во наладок,
+                # если операцию не нашли в словаре operations_total_labor_dict
+                max_setups_float=round(operations_total_labor_dict.get(
+                                       row['OPERATION_ID'], 1) /
+                                       max_shifts_for_one_setup, 3),
+                max_setups=math.ceil(operations_total_labor_dict.get(
+                                     row['OPERATION_ID'], 1) /
+                                     max_shifts_for_one_setup)
             )
+
         all_tasks.append(Task(
             operation=all_operations[row['OPERATION_ID']],
             quantity=row['QUANTITY'],
