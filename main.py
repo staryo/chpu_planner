@@ -152,10 +152,15 @@ def chpu_planner():
                     'QUANTITY': quantity
                 })
 
-        dict_to_excel(
-            counter_report,
-            config['input']['counter'].format(day + 1)
-        )
+        try:
+            dict_to_excel(counter_report,
+                          config['input']['counter'].format(day + 1))
+        except IndexError:
+            counter_report = [{'PHASE_ID': "",
+                               'DAY': "",
+                               'QUANTITY': ""}]
+            dict_to_excel(counter_report,
+                          config['input']['counter'].format(day + 1))
 
         dict_to_excel(daily_task_report(all_equipment_groups),
                       config['output']['daily_tasks'].format(day + 1))
@@ -183,35 +188,23 @@ def chpu_planner():
                       config['output']['daily_tasks'].format('materials'))
         archive.calculate_report_materials(
             step=config['rules']['step'],
-            file_path=config['output']['daily_tasks'].format('materials')
-        )
+            file_path=config['output']['daily_tasks'].format('materials'))
 
-    dict_to_excel(
-        archive.labor_report(
-            config['rules']['step'],
-            phase_dict
-        ),
-        config['output']['daily_tasks'].format('labor')
-    )
+    dict_to_excel(archive.labor_report(config['rules']['step'],
+                                       phase_dict),
+                  config['output']['daily_tasks'].format('labor'))
 
     # dict2csv(archive.raport_report(
     #         config['rules']['step']
     #     ), config['output']['raport'])
 
-    dict_to_excel(
-        archive.raport_report(
-            config['rules']['step']
-        ),
-        config['output']['daily_tasks'].format('raport')
-    )
+    dict_to_excel(archive.raport_report(config['rules']['step']),
+                  config['output']['daily_tasks'].format('raport'))
 
     with open(config['output']['raport'], 'w',
               encoding='utf-8') as output_file:
-        json.dump(archive.raport_report_2(
-            config['rules']['step']
-        ),
-            output_file
-        )
+        json.dump(archive.raport_report_2(config['rules']['step']),
+                  output_file)
 
 
 if __name__ == '__main__':
