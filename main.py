@@ -147,7 +147,11 @@ def chpu_planner():
                    key=lambda x: x[1].identity)
         )
 
-        counter_report = []
+        counter_report = [{
+            'PHASE_ID': None,
+            'DAY': None,
+            'QUANTITY': None
+        }]
         for phase, phase_data in counter.items():
             for day_limit, quantity in phase_data.items():
                 if quantity == 0:
