@@ -141,7 +141,11 @@ def chpu_planner():
             )
         )
 
-        counter_report = []
+        counter_report = [{
+            'PHASE_ID': None,
+            'DAY': None,
+            'QUANTITY': None
+        }]
         for phase, phase_data in counter.items():
             for day_limit, quantity in phase_data.items():
                 if quantity == 0:
@@ -152,15 +156,8 @@ def chpu_planner():
                     'QUANTITY': quantity
                 })
 
-        try:
-            dict_to_excel(counter_report,
-                          config['input']['counter'].format(day + 1))
-        except IndexError:
-            counter_report = [{'PHASE_ID': "",
-                               'DAY': "",
-                               'QUANTITY': ""}]
-            dict_to_excel(counter_report,
-                          config['input']['counter'].format(day + 1))
+        dict_to_excel(counter_report,
+                      config['input']['counter'].format(day + 1))
 
         dict_to_excel(daily_task_report(all_equipment_groups),
                       config['output']['daily_tasks'].format(day + 1))
