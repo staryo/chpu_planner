@@ -19,7 +19,6 @@ from logic.read_tasks import read_tasks
 from logic.tasks_left_report import tasks_left_report
 from model.archive import Archive
 from utils.excel import dict_to_excel
-
 from utils.listofdicts_to_csv import dict2csv
 
 
@@ -105,7 +104,7 @@ def chpu_planner():
         print()
         shift = 7
 
-    archive = Archive(first_date=first_date, shift=shift)
+    archive = Archive(first_date=first_date, shift=shift, config=config)
 
     for day in tqdm(range(config['rules']['days_number'])):
         all_equipment_classes, all_equipment_groups = read_equipment(config)
@@ -142,7 +141,11 @@ def chpu_planner():
             )
         )
 
-        counter_report = []
+        counter_report = [{
+            'PHASE_ID': None,
+            'DAY': None,
+            'QUANTITY': None
+        }]
         for phase, phase_data in counter.items():
             for day_limit, quantity in phase_data.items():
                 if quantity == 0:
@@ -153,10 +156,8 @@ def chpu_planner():
                     'QUANTITY': quantity
                 })
 
-        dict_to_excel(
-            counter_report,
-            config['input']['counter'].format(day + 1)
-        )
+        dict_to_excel(counter_report,
+                      config['input']['counter'].format(day + 1))
 
         dict_to_excel(daily_task_report(all_equipment_groups),
                       config['output']['daily_tasks'].format(day + 1))
@@ -171,35 +172,36 @@ def chpu_planner():
             for equipment in equipment_group.equipment.values():
                 archive.add_day(equipment, day)
 
-    dict_to_excel(archive.several_days_report(config['rules']['step']),
+    several_days_report, report_materials = archive.several_days_report(
+        step=config['rules']['step'])
+
+    dict_to_excel(several_days_report,
                   config['output']['daily_tasks'].format('all'))
 
-    dict_to_excel(
-        archive.labor_report(
-            config['rules']['step'],
-            phase_dict
-        ),
-        config['output']['daily_tasks'].format('labor')
-    )
+    # формируем этот отчёт если были NOK-заказы
+    # если в tasks_0 были только OK-заказы, то report_materials = []
+    if len(report_materials) > 0:
+        dict_to_excel(report_materials,
+                      config['output']['daily_tasks'].format('materials'))
+        archive.calculate_report_materials(
+            step=config['rules']['step'],
+            file_path=config['output']['daily_tasks'].format('materials'))
+
+    dict_to_excel(archive.labor_report(config['rules']['step'],
+                                       phase_dict),
+                  config['output']['daily_tasks'].format('labor'))
 
     # dict2csv(archive.raport_report(
     #         config['rules']['step']
     #     ), config['output']['raport'])
 
-    dict_to_excel(
-        archive.raport_report(
-            config['rules']['step']
-        ),
-        config['output']['daily_tasks'].format('raport')
-    )
+    dict_to_excel(archive.raport_report(config['rules']['step']),
+                  config['output']['daily_tasks'].format('raport'))
 
     with open(config['output']['raport'], 'w',
               encoding='utf-8') as output_file:
-        json.dump(archive.raport_report_2(
-            config['rules']['step']
-        ),
-            output_file
-        )
+        json.dump(archive.raport_report_2(config['rules']['step']),
+                  output_file)
 
 
 if __name__ == '__main__':

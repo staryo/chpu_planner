@@ -1,12 +1,16 @@
+import pandas as pd
 from collections import defaultdict
 from datetime import timedelta
+from logic.read_route_phases import read_route_phases
+from logic.read_route_phase_first_operation import read_route_phase_first_operation
 
 
 class Archive:
-    def __init__(self, first_date, shift):
+    def __init__(self, first_date, shift, config):
         self.schedule = defaultdict(lambda: defaultdict(dict))
         self.first_date = first_date
         self.shift = shift
+        self.config = config
 
     def add_day(self, equipment, day):
         self.schedule[equipment.identity][day] = equipment
@@ -29,10 +33,17 @@ class Archive:
 
     def several_days_report(self, step):
         report = []
+        route_phase_dict = read_route_phases(self.config['input']['spec'],
+                                             self.config['output']['route_phases'])
+        route_phase_first_operation_set = read_route_phase_first_operation(
+            self.config['input']['route_phase_first_operation'])
+        report_materials = []
+
         machine_labor = defaultdict(float)
         human_labor = defaultdict(float)
         setup_labor = defaultdict(float)
         prof_labor = defaultdict(lambda: defaultdict(float))
+
         for equipment in self.schedule.values():
             check = True
             task_number = 0
@@ -66,11 +77,32 @@ class Archive:
                         row[self.get_humanized_data(day, step)] = ''
                         continue
                     check = True
-                    operation_id = f"{task.operation.entity} [{task.operation.identity.split('_')[1][1]} | {task.operation.nop}]"
-                    if 'NOK' in task.order:
-                        operation_id = f"!NOK! {operation_id}"
-                    else:
+                    operation_id = f"{task.operation.entity} [{task.operation.route_letter} | {task.operation.nop}]"
+                    if task.order_provided:
                         operation_id = f"!OK! {operation_id}"
+                    else:
+                        operation_id = f"!NOK! {operation_id}"
+                        if task.operation.check_in_route_phase() in route_phase_first_operation_set:
+                            # формируем запись для "Участок-отправитель" в row1
+                            dept_name = ""
+                            if "-" in route_phase_dict[task.operation.route_phase][1]:
+                                # подставляем первую цифру под участок, 316 или 1ХХ
+                                dept_code_raw = route_phase_dict[task.operation.route_phase][1]
+                                first_dept_digit = "3" if dept_code_raw[-4:-2] == "16" else "1"
+                                dept_name = f"{first_dept_digit}{dept_code_raw[-4:-2]}-0{dept_code_raw[-2]}"
+                            row1 = {
+                                "Заказ": task.order,
+                                "Дата потребности": self.get_humanized_data(day, step),
+                                "Наименование NOK_ДСЕ": task.operation.entity,
+                                "Буква маршрута": task.operation.route_letter,
+                                "Артикул NOK_ДСЕ с цехозаходом": task.operation.route_phase,
+                                "Количество_шт": int(task.quantity),
+                                "Участок-отправитель": dept_name,
+                                "Наименование ДСЕ_комплектующей": route_phase_dict[task.operation.route_phase][0],
+                                "Артикул ДСЕ_комплектующей с цехозаходом": route_phase_dict[
+                                    task.operation.route_phase][1]
+                            }
+                            report_materials.append(row1)
                     row[self.get_humanized_data(day,
                                                 step)] = f"{operation_id}: {int(task.quantity)} шт"
                 report.append(row)
@@ -108,14 +140,58 @@ class Archive:
         for profession, labor in prof_labor.items():
             report.append(
                 self.add_total_data(
-                    {   'ГРУППА': '',
+                    {'ГРУППА': '',
                         'ИНВ. НОМЕР': '',
                         'МОДЕЛЬ ОБОРУДОВАНИЯ': profession,
                     },
                     labor,
                     step)
             )
-        return report
+
+        try:
+            report_materials.sort(key=lambda x: (x["Дата потребности"], -x["Количество_шт"]))
+        except Exception as error:
+            print()
+            print(f"ВНИМАНИЕ! Произошла ошибка {error}, отчёт по МИК не отсортирован.")
+            print()
+        return report, report_materials
+
+    def calculate_report_materials(self, step, file_path):
+        initial_report = self.several_days_report(step)[1]
+        df = pd.DataFrame(initial_report)
+        # датафрейм для сменного отчёта
+        df["Дата потребности"] = df["Дата потребности"].astype('datetime64[ns]')
+        df = df.groupby(["Дата потребности", "Заказ", "Наименование NOK_ДСЕ", "Буква маршрута",
+                         "Артикул NOK_ДСЕ с цехозаходом", "Участок-отправитель",
+                         "Наименование ДСЕ_комплектующей", "Артикул ДСЕ_комплектующей с цехозаходом"]
+                        ).Количество_шт.sum().reset_index()
+        df = df.sort_values(["Дата потребности", "Количество_шт"],
+                            ascending=(True, False))
+        # датафрейм для суточного отчёта
+        df2 = df.copy()
+        df2["Дата потребности"] = pd.to_datetime(df2["Дата потребности"]).dt.date
+        df2 = df2.groupby(["Дата потребности", "Заказ", "Наименование NOK_ДСЕ", "Буква маршрута",
+                           "Артикул NOK_ДСЕ с цехозаходом", "Участок-отправитель",
+                           "Наименование ДСЕ_комплектующей", "Артикул ДСЕ_комплектующей с цехозаходом"]
+                          ).Количество_шт.sum().reset_index()
+        df2 = df2.sort_values(["Дата потребности", "Количество_шт"],
+                              ascending=(True, False))
+        # выстраиваем в обеих таблицах нужный порядок столбцов
+        df = df[["Дата потребности", "Заказ", "Количество_шт", "Наименование NOK_ДСЕ",
+                 "Артикул NOK_ДСЕ с цехозаходом", "Буква маршрута",
+                 "Участок-отправитель", "Наименование ДСЕ_комплектующей",
+                 "Артикул ДСЕ_комплектующей с цехозаходом"]]
+        df2 = df2[["Дата потребности", "Заказ", "Количество_шт", "Наименование NOK_ДСЕ",
+                   "Артикул NOK_ДСЕ с цехозаходом", "Буква маршрута",
+                   "Участок-отправитель", "Наименование ДСЕ_комплектующей",
+                   "Артикул ДСЕ_комплектующей с цехозаходом"]]
+        # запись датафреймов в тот же файл отчёта МИК
+        excel_sheets = {"Сменный_отчёт": df, "Суточный отчёт": df2}
+        with pd.ExcelWriter(file_path, mode='a',
+                            engine='openpyxl',
+                            if_sheet_exists='replace') as writer:
+            for sheet, data in excel_sheets.items():
+                data.to_excel(writer, sheet_name=sheet, index=False)
 
     def labor_report(self, step, labor_dict):
         report = []

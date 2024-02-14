@@ -1,9 +1,13 @@
+from model.operation import Operation
+
+
 class Task:
-    def __init__(self, operation, quantity, date, order):
+    def __init__(self, operation: Operation, quantity, date, order):
         self.operation = operation
         self.quantity = quantity
         self.date = date
         self.order = order
+        self.order_provided = True if "_OK" in self.order else False
 
     @property
     def human_labor(self):
