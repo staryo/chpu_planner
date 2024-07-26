@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 from logic.read_route_phases import read_route_phases
 from logic.read_route_phase_first_operation import read_route_phase_first_operation
+from logic.dict_to_list import dict_to_list
 
 
 class Archive:
@@ -264,11 +265,16 @@ class Archive:
 
     def raport_report_2(self, step):
         daily_operation = defaultdict(lambda: defaultdict(float))
+        daily_operation_equipment = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
         for equipment in self.schedule.values():
             for day, tasks in equipment.items():
                 for task in tasks.schedule:
                     daily_operation[task.operation.identity][
                         day] += task.quantity
+                    if equipment[day].model in ['Ручные операции', 'Контроль']:
+                        daily_operation_equipment[task.operation.identity][day][equipment[day].equipment_class.identity] += task.quantity
+                    else:
+                        daily_operation_equipment[task.operation.identity][day][tasks.identity] += task.quantity
         return {
             f'{(self.get_humanized_data(day, step)).split(" ")[0]}_{(self.get_humanized_data(day, step)).split(" ")[1]}:00_{operation}':
                 {
@@ -282,6 +288,7 @@ class Archive:
                         (self.get_humanized_data(day, step)).split(' ')[0],
                     'timeBegin': f"{(self.get_humanized_data(day, step)).split(' ')[1]}:00",
                     'quantityPlan': daily_operation[operation][day],
+                    'equipments': dict_to_list(daily_operation_equipment[operation][day]),
                 } for operation in daily_operation for day in
             daily_operation[operation]
         }
